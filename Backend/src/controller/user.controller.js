@@ -1,5 +1,5 @@
 import UserModel from "../models/user.model.js";
-
+import { sendEmail } from "../services/mail.service.js";
 export const registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -13,6 +13,12 @@ export const registerUser = async (req, res) => {
     }
 
     const newUser = await UserModel.create({ username, email, password });
+    await sendEmail(
+      email,
+      "Welcome to Perplexity",
+      `Hello ${username},\n\nThank you for registering at Perplexity! We're excited to have you on board.\n\nBest regards,\nThe Perplexity Team`,
+      `<p>Hello ${username},</p><p>Thank you for registering at Perplexity! We're excited to have you on board.</p><p>Best regards,<br>The Perplexity Team</p>`
+    );
 
     return res.status(201).json({
       message: "User registered successfully",
