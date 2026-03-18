@@ -1,5 +1,7 @@
 import UserModel from "../models/user.model.js";
 import { sendEmail } from "../services/mail.service.js";
+import jwt from "jsonwebtoken";
+
 export const registerUser = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -13,12 +15,46 @@ export const registerUser = async (req, res) => {
     }
 
     const newUser = await UserModel.create({ username, email, password });
-    await sendEmail(
-      email,
-      "Welcome to Perplexity",
-      `Hello ${username},\n\nThank you for registering at Perplexity! We're excited to have you on board.\n\nBest regards,\nThe Perplexity Team`,
-      `<p>Hello ${username},</p><p>Thank you for registering at Perplexity! We're excited to have you on board.</p><p>Best regards,<br>The Perplexity Team</p>`
-    );
+
+    if (!process.env.JWT_SECRET) {
+      console.error("JWT_SECRET is missing in environment variables");
+      return res.status(201).json({
+        message: "User registered successfully, but email verification is unavailable",
+        user: {
+          id: newUser._id,
+          username: newUser.username,
+          email: newUser.email,
+          verified: newUser.verified,
+        },
+      });
+    }
+
+    const token = jwt.sign({ email: newUser.email }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    const verificationUrl = `http://localhost:3000/api/users/verify?token=${token}`;
+    const emailText = `Hello ${username},
+
+Thank you for registering at Perplexity. Please verify your email using the link below:
+${verificationUrl}
+
+Best regards,
+The Perplexity Team`;
+    const emailHtml = `
+      <p>Hello ${username},</p>
+      <p>Thank you for registering at Perplexity.</p>
+      <p>
+        Please verify your email by clicking
+        <a href="${verificationUrl}">this link</a>.
+      </p>
+      <p>Best regards,<br>The Perplexity Team</p>
+    `;
+
+    try {
+      await sendEmail(email, "Verify your email", emailText, emailHtml);
+    } catch (mailError) {
+      console.error("Welcome email failed to send:", mailError.message);
+    }
 
     return res.status(201).json({
       message: "User registered successfully",
@@ -30,6 +66,7 @@ export const registerUser = async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Register user error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
