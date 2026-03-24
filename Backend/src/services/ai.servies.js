@@ -5,7 +5,7 @@ const model = new ChatGoogle({
 });
 
  export const getAIResponse = async (req, res) => {
-    const response =await model.invoke("captial of india").then((response) => {
+    const response =await model.invoke("Who is cheif minister of India?").then((response) => {
         console.log(response.text);
       });
  }
