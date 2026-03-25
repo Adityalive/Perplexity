@@ -1,5 +1,4 @@
 import { registerUser,loginUser,getme } from "../services/auth.api.service";
-import {useSelector} from "react-redux";
 import { useDispatch } from "react-redux";
 import { setError,setLoading,setUser } from "../auth.slice";
 
@@ -8,8 +7,8 @@ export function useAuth() {
 
      async function handleregisterUser({ username, email, password }) {
        try{
-        dispatch(setLoading(false));
-        const response = await registerUser({ username, email, password });
+        dispatch(setLoading(true));
+        await registerUser({ username, email, password });
        }catch(error){
         dispatch(setError(error.message));
         console.error('Error registering user:', error);
@@ -22,7 +21,7 @@ export function useAuth() {
 
     async function handleloginUser({ email, password }) {
         try{
-            dispatch(setLoading(false));
+            dispatch(setLoading(true));
             const response = await loginUser({ email, password });
             dispatch(setUser(response.user));
         }catch(error){
@@ -37,7 +36,7 @@ export function useAuth() {
 
     async function handlegetme() {
         try{
-            dispatch(setLoading(false));
+            dispatch(setLoading(true));
             const response = await getme();
             dispatch(setUser(response.user));
         }catch(error){
