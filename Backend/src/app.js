@@ -16,6 +16,16 @@ app.use(cors({
 app.use(morgan("dev"));
 app.use(cookieParser());
 app.use(express.json());
+
+// Normalize accidental newline characters in URL paths (e.g. %0A).
+app.use((req, _res, next) => {
+  req.url = req.url
+    .replace(/%0A/gi, "")
+    .replace(/%0D/gi, "")
+    .replace(/[\r\n]/g, "");
+  next();
+});
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
