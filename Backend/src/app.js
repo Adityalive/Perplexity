@@ -3,11 +3,10 @@ import cookieParser from "cookie-parser";
 import express from "express";
 import userRouter from "./routes/user.route.js";
 import connectDB from "./config/database.js";
-import { getAIResponse } from "./services/ai.servies.js";
 import cors from "cors";
 import morgan from "morgan";
+import chatRouter from "./routes/chat.route.js";
 connectDB();
-getAIResponse();
 
 const app = express();
 app.use(cors({
@@ -22,5 +21,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/users", userRouter);
+app.use("/api/chats", chatRouter);
 
 export default app;

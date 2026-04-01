@@ -1,13 +1,14 @@
 import nodemailer from "nodemailer";
 
+const emailUser = process.env.EMAIL_USER;
+const emailAppPassword =
+  process.env.EMAIL_APP_PASSWORD || process.env["Email_App-PASSWORD"];
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    type: "OAuth2",
-    user: process.env.EMAIL_USER,
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    refreshToken: process.env.REFRESH_TOKEN,
+    user: emailUser,
+    pass: emailAppPassword,
   },
 });
 
@@ -27,7 +28,7 @@ export const sendEmail = async (to, subject, text, html) => {
     }
 
     const details = await transporter.sendMail({
-      from: `"Perplexity" <${process.env.EMAIL_USER}>`,
+      from: `"Perplexity" <${emailUser}>`,
       to,
       subject,
       text,
