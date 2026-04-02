@@ -401,6 +401,11 @@
   font-family: monospace;
 }
 
+/* Sidebar and Header Markdown resets */
+.chat-title-text p, .loading-label p, .empty-state p {
+  margin-bottom: 0 !important;
+}
+
 .message-bubble pre {
   background: #000;
   padding: 16px;

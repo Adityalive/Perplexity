@@ -14,6 +14,9 @@ export default function Dashboard() {
 
   const activeChat = currentChatId ? chats[currentChatId] : null;
   const activeMessages = activeChat?.messages ?? [];
+  const chatList = useMemo(() => {
+    return Object.values(chats || {}).sort((a,b) => new Date(b.lastUpdated || b.createdAt) - new Date(a.lastUpdated || a.createdAt));
+  }, [chats]);
 
   useEffect(() => {
     const linkInter = document.createElement("link");
@@ -107,54 +110,24 @@ export default function Dashboard() {
           </div>
 
           <div className="menu-section">
-            <div className="menu-item">
-              <span className="material-symbols-outlined">image</span>
-              <span>Images</span>
+            <div className="menu-eyebrow" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+              Your chats <span className="material-symbols-outlined" style={{ fontSize: '14px', marginLeft: '4px' }}>expand_more</span>
             </div>
-            <div className="menu-item">
-              <span className="material-symbols-outlined">grid_view</span>
-              <span>Apps</span>
-            </div>
-            <div className="menu-item">
-              <span className="material-symbols-outlined">science</span>
-              <span>Deep research</span>
-            </div>
-            <div className="menu-item">
-              <span className="material-symbols-outlined">explore</span>
-              <span>Codex</span>
-            </div>
-            <div className="menu-item">
-              <span className="material-symbols-outlined">extension</span>
-              <span>GPTs</span>
-            </div>
-          </div>
-
-          <div className="menu-section">
-            <p className="menu-eyebrow">Projects</p>
-            <div className="menu-item">
-              <span className="material-symbols-outlined">create_new_folder</span>
-              <span>New project</span>
-            </div>
-            <div className="menu-item">
-              <span className="material-symbols-outlined">folder</span>
-              <span>DSA</span>
-            </div>
-            <div className="menu-item">
-              <span className="material-symbols-outlined">folder</span>
-              <span>backend</span>
-            </div>
-             <div className="menu-item">
-              <span className="material-symbols-outlined">folder</span>
-              <span>teached by gpt</span>
-            </div>
-            <div className="menu-item">
-              <span className="material-symbols-outlined">folder</span>
-              <span>react</span>
-            </div>
-            <div className="menu-item">
-              <span className="material-symbols-outlined">folder</span>
-              <span>Imp</span>
-            </div>
+            {chatList.map((chat, idx) => (
+              <div 
+                key={chat._id || chat.id} 
+                onClick={() => openChat(chat._id || chat.id)}
+                className={`menu-item ${currentChatId === (chat._id || chat.id) ? 'active' : ''}`}
+                style={{ justifyContent: 'space-between' }}
+              >
+                <div className="chat-title-text" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, fontSize: '0.85rem' }}>
+                  <ReactMarkdown>{chat.title || "Untitled Chat"}</ReactMarkdown>
+                </div>
+                {idx < 2 && (
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--text-dim)' }}>push_pin</span>
+                )}
+              </div>
+            ))}
           </div>
         </nav>
 
@@ -196,7 +169,18 @@ export default function Dashboard() {
             ))
           ) : (
             <div className="empty-state">
-                <h1>What's on the agenda today?</h1>
+                <ReactMarkdown># What's on the agenda today?</ReactMarkdown>
+            </div>
+          )}
+          
+          {isLoading && (
+            <div className="loading-state-wrap" style={{ width: '100%', maxWidth: '800px', margin: '20px auto', padding: '0 24px' }}>
+              <p className="loading-label" style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginBottom: '8px' }}>
+                <ReactMarkdown>*Recalling First Message...*</ReactMarkdown>
+              </p>
+              <div className="animate-loading-bar" style={{ width: '100%', height: '2px', background: 'rgba(255,255,255,0.05)', overflow: 'hidden', borderRadius: '2px' }}>
+                <div className="loading-progress" style={{ height: '100%', background: 'white', width: '30%', animation: 'loading-bar 2s infinite ease-in-out' }}></div>
+              </div>
             </div>
           )}
         </main>
