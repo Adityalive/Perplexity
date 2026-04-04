@@ -34,3 +34,22 @@ export async function getMessages(chatId) {
     throw error;
   }
 }
+export async function sendImageMessage({ chat, content,file }) {
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
+    if (chat) {
+      formData.append("chat", chat);
+    }
+    formData.append("content", content);
+    const response = await api.post("/image-message", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error sending image message:", error);
+    throw error;
+  }
+}

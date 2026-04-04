@@ -1,7 +1,7 @@
 import { generateChatTitle, generateResponse } from "../services/ai.servies.js";
 import chatModel from "../models/chat.model.js";
 import messageModel from "../models/message.model.js";
-
+import { uploadToImageKit } from "../services/imagekit.services.js";
 export async function sendMessage(req, res) {
   const { message, chat: chatId } = req.body;
 
@@ -71,4 +71,46 @@ export async function getMessages(req, res) {
     message: "Messages retrieved successfully",
     messages,
   });
+}
+export async function sendImageMessage(req, res) {
+  try {
+    const { chat: chatId, content } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Image is required" });
+    }
+
+    let chat = null;
+    let title = null;
+
+    if (!chatId) {
+      title = await generateChatTitle(content || "Image message");
+      chat = await chatModel.create({
+        user: req.user.id,
+        title,
+      });
+    }
+
+    const resolvedChatId = chatId || chat._id;
+
+    const uploadedImage = await uploadToImageKit(req.file);
+
+    const userMessage = await messageModel.create({
+      chat: resolvedChatId,
+      content: content || "",
+      image: uploadedImage.url,
+      role: "user",
+      messageType: "image",
+    });
+
+    return res.status(200).json({
+      message: "Image message sent successfully",
+      chat,
+      userMessage,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Failed to send image message",
+    });
+  }
 }

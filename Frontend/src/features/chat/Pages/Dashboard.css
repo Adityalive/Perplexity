@@ -384,6 +384,7 @@
 .plx-chat-area {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 60px 24px 160px;
   display: flex;
   flex-direction: column;
@@ -392,11 +393,12 @@
 
 .plx-msg-row {
   width: 100%;
-  max-width: 720px;    /* Fixed max — not vw — so it doesn't depend on panel width */
-  margin: 0 auto 20px;
+  max-width: 720px;
+  margin: 0 auto 24px;
   display: flex;
   flex-direction: column;
   padding: 0;
+  min-width: 0;          /* Prevent flex overflow */
 }
 
 .plx-msg-row--user { align-items: flex-end; }
@@ -404,26 +406,40 @@
 
 .plx-msg-bubble {
   font-size: 15px;
-  line-height: 1.65;
+  line-height: 1.7;
   overflow-wrap: break-word;
   word-break: break-word;
   min-width: 0;
   max-width: 100%;
+  box-sizing: border-box;
 }
+
+/* ── USER BUBBLE ── */
 .plx-msg-bubble--user {
-  background: var(--plx-card-bg);
+  background: linear-gradient(135deg, #2a2d3a, #232636);
+  border: 1px solid rgba(100, 120, 255, 0.15);
   border-radius: 18px 18px 4px 18px;
   color: var(--plx-text);
-  padding: 12px 18px;
+  padding: 14px 20px;
   max-width: 85%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
+
+/* ── AI BUBBLE ── */
 .plx-msg-bubble--ai {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-left: 3px solid rgba(120, 160, 255, 0.4);
+  border-radius: 4px 14px 14px 4px;
   color: var(--plx-text);
   width: 100%;
-  overflow: hidden;      /* Contain ALL child content within the bubble */
+  max-width: 100%;
+  padding: 18px 22px;
+  box-sizing: border-box;
+  overflow: hidden;
   overflow-wrap: break-word;
   word-break: break-word;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Loading dots */
@@ -439,7 +455,7 @@
 .plx-loading-dot {
   width: 8px;
   height: 8px;
-  background: var(--plx-text-dim);
+  background: rgba(120, 160, 255, 0.6);
   border-radius: 50%;
   animation: plx-bounce 1.2s infinite ease-in-out;
 }
@@ -455,14 +471,14 @@
   left: 0;
   right: 0;
   padding: 16px 24px 24px;
-  background: linear-gradient(to top, var(--plx-bg) 70%, transparent);
+  background: linear-gradient(to top, var(--plx-bg) 80%, transparent);
   display: flex;
   justify-content: center;
 }
 
 .plx-chat-input-box {
   width: 100%;
-  max-width: 720px;    /* Match message row exactly */
+  max-width: 720px;
   background: var(--plx-card-bg);
   border: 1px solid var(--plx-card-border);
   border-radius: var(--plx-radius-pill);
@@ -470,10 +486,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .plx-chat-input-box:focus-within {
-  border-color: rgba(255, 255, 255, 0.22);
+  border-color: rgba(120, 160, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(120, 160, 255, 0.08);
 }
 
 .plx-chat-textarea {
@@ -486,7 +503,7 @@
   font-family: inherit;
   font-size: 15px;
   line-height: 1.5;
-  max-height: 25vh; /* Restrict max text area size on small height screens */
+  max-height: 25vh;
 }
 .plx-chat-textarea::placeholder { color: var(--plx-text-muted); }
 
@@ -529,8 +546,14 @@
   color: var(--plx-text-dim);
   cursor: pointer;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
   transition: background 0.15s, color 0.15s;
 }
 .plx-history-item:hover {
@@ -555,52 +578,70 @@
 }
 
 /* ── MARKDOWN IN BUBBLES ── */
+.plx-msg-bubble p,
+.plx-msg-bubble li,
+.plx-msg-bubble span {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  text-wrap: wrap;
+  white-space: normal;
+}
+
 .plx-msg-bubble--ai h1,
 .plx-msg-bubble--ai h2,
 .plx-msg-bubble--ai h3 {
-  margin: 14px 0 6px;
+  margin: 16px 0 8px;
   font-weight: 600;
+  color: rgba(200, 215, 255, 0.95);
 }
+.plx-msg-bubble--ai h1 { font-size: 1.3em; }
+.plx-msg-bubble--ai h2 { font-size: 1.15em; }
+.plx-msg-bubble--ai h3 { font-size: 1.05em; }
+
 .plx-msg-bubble--ai p { margin-bottom: 10px; }
-.plx-msg-bubble--ai p:last-child { margin-bottom: 0; }
+.plx-msg-bubble--user p { margin-bottom: 0; }
+.plx-msg-bubble--ai p:last-child,
+.plx-msg-bubble--user p:last-child { margin-bottom: 0; }
 .plx-msg-bubble--ai ul,
 .plx-msg-bubble--ai ol {
   padding-left: 20px;
   margin-bottom: 10px;
 }
-.plx-msg-bubble--ai code {
+.plx-msg-bubble--ai li {
+  margin-bottom: 4px;
+}
+
+/* Inline code */
+.plx-msg-bubble code {
   background: rgba(255, 255, 255, 0.08);
   padding: 2px 6px;
   border-radius: 4px;
-  font-family: 'Fira Code', monospace;
+  font-family: 'Fira Code', 'Consolas', monospace;
   font-size: 13px;
-}
-.plx-msg-bubble--ai p,
-.plx-msg-bubble--ai li,
-.plx-msg-bubble--ai span {
-  overflow-wrap: break-word;
-  word-break: break-word;
+  word-break: break-all;
 }
 
-.plx-msg-bubble--ai pre {
+/* Code blocks */
+.plx-msg-bubble pre {
   background: #111;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   padding: 14px 18px;
   border-radius: 10px;
-  width: 100%;           /* Fill bubble width exactly */
-  max-width: 100%;       /* Never exceed parent */
-  overflow-x: auto;      /* Horizontal scroll for very wide code */
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
   box-sizing: border-box;
   margin: 12px 0;
 }
-.plx-msg-bubble--ai pre::-webkit-scrollbar { height: 5px; }
-.plx-msg-bubble--ai pre::-webkit-scrollbar-thumb {
+.plx-msg-bubble pre::-webkit-scrollbar { height: 5px; }
+.plx-msg-bubble pre::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 10px;
 }
-.plx-msg-bubble--ai pre code {
+.plx-msg-bubble pre code {
   background: transparent;
   padding: 0;
-  white-space: pre;      /* Keep code formatting */
+  white-space: pre;
   word-break: normal;
   overflow-wrap: normal;
 }
@@ -668,6 +709,9 @@
   font-weight: 500;
   margin-bottom: 4px;
   color: var(--plx-text);
+  line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .plx-library-item-meta {

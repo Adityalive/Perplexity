@@ -30,6 +30,30 @@ const agent = createAgent({
     tools: [ searchInternetTool ],
 })
 
+function normalizeChatTitle(rawTitle, fallbackMessage = "") {
+    const fallback = fallbackMessage
+        .replace(/\s+/g, " ")
+        .trim()
+        .split(" ")
+        .slice(0, 4)
+        .join(" ");
+
+    const sanitized = String(rawTitle ?? "")
+        .replace(/[\r\n]+/g, " ")
+        .replace(/["'*#`[\]()]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    if (!sanitized) {
+        return fallback || "New Chat";
+    }
+
+    const limitedWords = sanitized.split(" ").slice(0, 6).join(" ");
+    const limitedChars = limitedWords.slice(0, 60).trim();
+
+    return limitedChars || fallback || "New Chat";
+}
+
 export async function generateResponse(messages) {
     console.log(messages)
 
@@ -86,7 +110,8 @@ export async function generateChatTitle(message) {
         new SystemMessage(`
             You are a helpful assistant that generates concise and descriptive titles for chat conversations.
             
-            User will provide you with the first message of a chat conversation, and you will generate a title that captures the essence of the conversation in 2-4 words. The title should be clear, relevant, and engaging, giving users a quick understanding of the chat's topic.    
+            User will provide you with the first message of a chat conversation, and you will generate a title that captures the essence of the conversation in 2-4 words.
+            Return only the title text. Do not add quotes, labels, markdown, or explanations.
         `),
         new HumanMessage(`
             Generate a title for a chat conversation based on the following first message:
@@ -94,7 +119,7 @@ export async function generateChatTitle(message) {
             `)
     ])
 
-    return response.text;
+    return normalizeChatTitle(response.text, message);
 
 }
 
