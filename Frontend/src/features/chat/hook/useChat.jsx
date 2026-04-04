@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import {
   addMessages,
@@ -13,7 +14,10 @@ import {
   getMessages,
   sendMessage,
 } from "../services/chat.api";
-import { initializeSocketConnection } from "../services/chat.socket";
+import {
+  disconnectSocketConnection,
+  initializeSocketConnection,
+} from "../services/chat.socket";
 
 export function useChat() {
   const dispatch = useDispatch();
@@ -117,8 +121,17 @@ export function useChat() {
     }
   }
 
+  const handleInitializeSocketConnection = useCallback(() => {
+    return initializeSocketConnection();
+  }, []);
+
+  const handleDisconnectSocketConnection = useCallback(() => {
+    disconnectSocketConnection();
+  }, []);
+
   return {
-    initializeSocketConnection,
+    initializeSocketConnection: handleInitializeSocketConnection,
+    disconnectSocketConnection: handleDisconnectSocketConnection,
     handleSendMessage,
     handleGetChats,
     handleOpenChat,
