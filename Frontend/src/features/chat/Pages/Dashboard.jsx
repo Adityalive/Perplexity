@@ -126,6 +126,9 @@ export default function Dashboard() {
     const message = (queryText || draft).trim();
     if (isLoading) return;
 
+    // Immediately switch to chat view so UI updates
+    setViewMode("chat");
+
     let data;
 
     if (selectedImage) {

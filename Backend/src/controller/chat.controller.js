@@ -4,45 +4,63 @@ import chatModel from "../models/chat.model.js";
 import messageModel from "../models/message.model.js";
 import { uploadToImageKit } from "../services/imagekit.services.js";
 export async function sendMessage(req, res) {
-  const { message, chat: chatId } = req.body;
+  try {
+    const { message, chat: chatId } = req.body;
 
-  let title = null;
-  let chat = null;
+    if (!message?.trim()) {
+      return res.status(400).json({ message: "Message content is required" });
+    }
 
-  if (!chatId) {
-    title = await generateChatTitle(message);
-    chat = await chatModel.create({
-      user: req.user.id,
-      title,
+    let title = null;
+    let chat = null;
+
+    if (!chatId) {
+      // Generate title in parallel without blocking chat creation
+      try {
+        title = await generateChatTitle(message);
+      } catch {
+        title = message.slice(0, 40); // Fallback title
+      }
+      chat = await chatModel.create({ user: req.user.id, title });
+    }
+
+    const resolvedChatId = chatId || chat._id;
+
+    // Save user message
+    const userMessage = await messageModel.create({
+      chat: resolvedChatId,
+      content: message,
+      role: "user",
     });
+
+    // Fetch ONLY the last 15 messages for AI context (prevents token overflow)
+    const messages = await messageModel
+      .find({ chat: resolvedChatId })
+      .sort({ createdAt: -1 })
+      .limit(15)
+      .then((msgs) => msgs.reverse());
+
+    const { text: result, sources, followUps } = await generateResponse(messages);
+
+    const aiMessage = await messageModel.create({
+      chat: resolvedChatId,
+      content: result,
+      role: "ai",
+      sources: sources || [],
+      followUps: followUps || [],
+    });
+
+    res.status(200).json({
+      message: "Message sent successfully",
+      title,
+      chat,
+      userMessage,
+      aiMessage,
+    });
+  } catch (error) {
+    console.error("sendMessage error:", error.message);
+    res.status(500).json({ message: error.message || "Failed to send message" });
   }
-
-  const resolvedChatId = chatId || chat._id;
-
-  const userMessage = await messageModel.create({
-    chat: resolvedChatId,
-    content: message,
-    role: "user",
-  });
-
-  const messages = await messageModel.find({ chat: resolvedChatId });
-  const { text: result, sources, followUps } = await generateResponse(messages);
-
-  const aiMessage = await messageModel.create({
-    chat: resolvedChatId,
-    content: result,
-    role: "ai",
-    sources: sources || [],
-    followUps: followUps || [],
-  });
-
-  res.status(200).json({
-    message: "Message sent successfully",
-    title,
-    chat,
-    userMessage,
-    aiMessage,
-  });
 }
 
 export async function getChats(req, res) {

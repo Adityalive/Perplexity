@@ -26,42 +26,29 @@ export function useChat() {
   async function handleSendMessage({ message, chatId }) {
     try {
       dispatch(setLoading(true));
+      dispatch(setError(null));
 
-      const data = await sendMessage({
-        message,
-        chat: chatId,
-      });
+      const data = await sendMessage({ message, chat: chatId });
 
       const resolvedChatId = chatId || data.chat?._id;
 
+      // Register new chat in Redux FIRST before adding messages
       if (!chatId && data.chat) {
-        dispatch(
-          createNewChat({
-            chatId: data.chat._id,
-            title: data.chat.title,
-          })
-        );
+        dispatch(createNewChat({ chatId: data.chat._id, title: data.chat.title }));
+        dispatch(setCurrentChatId(data.chat._id));
       }
 
-      dispatch(
-        addNewMessage({
-          chatId: resolvedChatId,
-          content: message,
-          role: "user",
-        })
-      );
+      dispatch(addNewMessage({ chatId: resolvedChatId, content: message, role: "user" }));
+      dispatch(addNewMessage({
+        chatId: resolvedChatId,
+        content: data.aiMessage.content,
+        role: data.aiMessage.role,
+        sources: data.aiMessage.sources || [],
+        followUps: data.aiMessage.followUps || [],
+      }));
 
-      dispatch(
-        addNewMessage({
-          chatId: resolvedChatId,
-          content: data.aiMessage.content,
-          role: data.aiMessage.role,
-          sources: data.aiMessage.sources || [],
-          followUps: data.aiMessage.followUps || [],
-        })
-      );
+      if (chatId) dispatch(setCurrentChatId(resolvedChatId));
 
-      dispatch(setCurrentChatId(resolvedChatId));
       return data;
     } catch (error) {
       dispatch(setError(error.response?.data?.message || error.message));

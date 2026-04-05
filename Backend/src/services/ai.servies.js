@@ -55,8 +55,16 @@ function normalizeChatTitle(rawTitle, fallbackMessage = "") {
 }
 
 export async function generateResponse(messages) {
-    console.log(messages);
     clearSearchSources();
+
+    // Only send the last 500 chars of each message to reduce token bloat
+    const trimmedMessages = messages.map(msg => {
+        if (msg.role == "user") {
+            return new HumanMessage(msg.content?.slice(-500) || "")
+        } else if (msg.role == "ai") {
+            return new AIMessage(msg.content?.slice(-500) || "")
+        }
+    }).filter(Boolean);
 
     const response = await agent.invoke({
         messages: [
@@ -91,13 +99,7 @@ When you use "searchInternet":
 ## Tone
 Be warm but efficient. Avoid over-explaining unless the user asks for detail. Match the user's register — casual for casual questions, technical for technical ones.
             `),
-            ...(messages.map(msg => {
-                if (msg.role == "user") {
-                    return new HumanMessage(msg.content)
-                } else if (msg.role == "ai") {
-                    return new AIMessage(msg.content)
-                }
-            }))]
+            ...trimmedMessages]
     });
 
     const text = response.messages[response.messages.length - 1].text;
