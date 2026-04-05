@@ -13,6 +13,7 @@ import {
   getChats,
   getMessages,
   sendMessage,
+  sendImageMessage,
 } from "../services/chat.api";
 import {
   disconnectSocketConnection,
@@ -93,6 +94,58 @@ export function useChat() {
     }
   }
 
+  async function handleSendImageMessage({ file, content, chatId }) {
+    try {
+      dispatch(setLoading(true));
+
+      const data = await sendImageMessage({
+        file,
+        content,
+        chat: chatId,
+      });
+
+      const resolvedChatId = chatId || data.chat?._id;
+
+      if (!chatId && data.chat) {
+        dispatch(
+          createNewChat({
+            chatId: data.chat._id,
+            title: data.chat.title,
+          })
+        );
+      }
+
+      dispatch(
+        addNewMessage({
+          chatId: resolvedChatId,
+          content: data.userMessage.content,
+          image: data.userMessage.image,
+          messageType: data.userMessage.messageType || "image",
+          role: data.userMessage.role,
+        })
+      );
+
+      // Add the AI response to the chat
+      if (data.aiMessage) {
+        dispatch(
+          addNewMessage({
+            chatId: resolvedChatId,
+            content: data.aiMessage.content,
+            role: data.aiMessage.role,
+          })
+        );
+      }
+
+      dispatch(setCurrentChatId(resolvedChatId));
+      return data;
+    } catch (error) {
+      dispatch(setError(error.response?.data?.message || error.message));
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+
   async function handleOpenChat(chatId, chats) {
     try {
       dispatch(setLoading(true));
@@ -101,6 +154,8 @@ export function useChat() {
         const data = await getMessages(chatId);
         const formattedMessages = data.messages.map((msg) => ({
           content: msg.content,
+          image: msg.image || null,
+          messageType: msg.messageType || (msg.image ? "image" : "text"),
           role: msg.role,
         }));
 
@@ -133,6 +188,7 @@ export function useChat() {
     initializeSocketConnection: handleInitializeSocketConnection,
     disconnectSocketConnection: handleDisconnectSocketConnection,
     handleSendMessage,
+    handleSendImageMessage,
     handleGetChats,
     handleOpenChat,
   };

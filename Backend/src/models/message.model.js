@@ -9,12 +9,18 @@ const messageSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: true,
+      default: "",
       trim: true,
     },
     image: {
       type: String,
-     default: null,   },
+      default: null,
+    },
+    messageType: {
+      type: String,
+      enum: ["text", "image"],
+      default: "text",
+    },
     role: {
       type: String,
       required: true,

@@ -27,7 +27,7 @@ const searchInternetTool = tool(
 
 const agent = createAgent({
     model: mistralModel,
-    tools: [ searchInternetTool ],
+    tools: [searchInternetTool],
 })
 
 function normalizeChatTitle(rawTitle, fallbackMessage = "") {
@@ -63,7 +63,6 @@ export async function generateResponse(messages) {
                You are a knowledgeable, precise, and helpful AI assistant. Your goal is to give accurate, well-reasoned answers while being honest about the limits of your knowledge.
 
 ## Core Behavior
-
 - Answer questions clearly and concisely, adapting your depth to the complexity of the question.
 - If you are uncertain or don't know something, say so directly — never fabricate information.
 - Cite your reasoning when helpful, especially for nuanced or complex topics.
@@ -72,7 +71,7 @@ export async function generateResponse(messages) {
 ## Using the Internet (searchInternet tool)
 
 Use the "searchInternet" tool whenever:
-- The question involves current events, recent news, live data (prices, scores, weather), or anything time-sensitive.
+- The question involves current events, recent news, live data (prices, scores, weather,time), or anything time-sensitive.
 - The topic may have changed or been updated after your training cutoff.
 - You are uncertain whether your knowledge is current enough to answer reliably.
 
@@ -97,10 +96,10 @@ Be warm but efficient. Avoid over-explaining unless the user asks for detail. Ma
                 } else if (msg.role == "ai") {
                     return new AIMessage(msg.content)
                 }
-            })) ]
+            }))]
     });
 
-    return response.messages[ response.messages.length - 1 ].text;
+    return response.messages[response.messages.length - 1].text;
 
 }
 
@@ -108,10 +107,19 @@ export async function generateChatTitle(message) {
 
     const response = await mistralModel.invoke([
         new SystemMessage(`
-            You are a helpful assistant that generates concise and descriptive titles for chat conversations.
-            
-            User will provide you with the first message of a chat conversation, and you will generate a title that captures the essence of the conversation in 2-4 words.
-            Return only the title text. Do not add quotes, labels, markdown, or explanations.
+            You are an expert at generating short, meaningful titles for chat conversations.
+
+Given the user's first message, generate a concise title that:
+- Captures the core topic or intent of the conversation
+- Is 2–5 words 
+- Uses natural, human-readable language (not robotic or overly technical)
+- Prioritizes clarity and specificity over generic phrasing
+
+ Rules:
+- Return ONLY the title — no quotes, punctuation at the end, labels, markdown, or explanations
+- Do NOT start with words like "Chat about", "Discussion on", or "Help with"
+- Prefer noun phrases or action-oriented titles (e.g., "Fix Login Bug", "Summarize Research Paper")
+
         `),
         new HumanMessage(`
             Generate a title for a chat conversation based on the following first message:

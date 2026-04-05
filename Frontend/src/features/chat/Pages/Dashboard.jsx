@@ -29,12 +29,15 @@ export default function Dashboard() {
     handleGetChats,
     handleOpenChat,
     handleSendMessage,
+    handleSendImageMessage,
   } = useChat();
   const { chats, currentChatId, isLoading } = useSelector((state) => state.chat);
   const [draft, setDraft] = useState("");
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [viewMode, setViewMode] = useState("home"); // home, chat, library
+  const [selectedImage, setSelectedImage] = useState(null); // { file, previewUrl }
   const textareaRef = useRef(null);
+  const imageInputRef = useRef(null);
 
   const activeChat = currentChatId ? chats[currentChatId] : null;
   const activeMessages = activeChat?.messages ?? [];
@@ -103,20 +106,55 @@ export default function Dashboard() {
 
   async function onSubmit(queryText) {
     const message = (queryText || draft).trim();
-    if (!message || isLoading) return;
+    if (isLoading) return;
+
+    if (selectedImage) {
+      // Send image (with optional text)
+      try {
+        await handleSendImageMessage({
+          file: selectedImage.file,
+          content: message,
+          chatId: currentChatId,
+        });
+      } catch (e) { console.error(e); }
+      finally {
+        clearSelectedImage();
+        setDraft("");
+        if (imageInputRef.current) imageInputRef.current.value = "";
+      }
+      return;
+    }
+
+    if (!message) return;
     setDraft("");
     try {
-      const res = await handleSendMessage({ message, chatId: currentChatId });
-      if (!currentChatId && res?.chat?._id) {
-        await handleOpenChat(res.chat._id, { ...chats });
-      }
+      await handleSendMessage({ message, chatId: currentChatId });
     } catch (e) { console.error(e); }
+  }
+
+  function handleImageSelection(e) {
+    const file = e.target.files?.[0];
+    if (!file || isLoading) return;
+    const previewUrl = URL.createObjectURL(file);
+    setSelectedImage({ file, previewUrl });
+    // Reset input so the same file can be re-selected if needed
+    e.target.value = "";
+  }
+
+  function clearSelectedImage() {
+    if (selectedImage?.previewUrl) URL.revokeObjectURL(selectedImage.previewUrl);
+    setSelectedImage(null);
+  }
+
+  function triggerImagePicker() {
+    imageInputRef.current?.click();
   }
 
   function startNewConversation() {
     dispatch(setCurrentChatId(null));
     setViewMode("home");
     setDraft("");
+    clearSelectedImage();
   }
 
   const handleKeyDown = (e) => {
@@ -128,6 +166,14 @@ export default function Dashboard() {
 
   return (
     <div className="plx-root">
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="plx-hidden-file-input"
+        onChange={handleImageSelection}
+      />
+
       {/* ── NARROW ICON SIDEBAR ── */}
       <aside className="plx-sidebar">
         {/* Logo icon */}
@@ -185,11 +231,22 @@ export default function Dashboard() {
 
             {/* ── BIG INPUT CARD ── */}
             <div className="plx-input-card">
+              {/* Image preview inside the card */}
+              {selectedImage && (
+                <div className="plx-image-preview-strip">
+                  <div className="plx-image-preview-thumb">
+                    <img src={selectedImage.previewUrl} alt="Selected" />
+                    <button className="plx-image-preview-remove" onClick={clearSelectedImage} title="Remove image">
+                      <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>close</span>
+                    </button>
+                  </div>
+                </div>
+              )}
               {/* Text area */}
               <textarea
                 ref={textareaRef}
                 className="plx-card-textarea"
-                placeholder="Type @ for connectors and sources"
+                placeholder={selectedImage ? "Add a message (optional)..." : "Type @ for connectors and sources"}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -198,7 +255,7 @@ export default function Dashboard() {
               {/* Card bottom toolbar */}
               <div className="plx-card-toolbar">
                 <div className="plx-card-toolbar-left">
-                  <button className="plx-toolbar-btn" title="Attach">
+                  <button className="plx-toolbar-btn" title="Attach image" onClick={triggerImagePicker} disabled={isLoading}>
                     <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>add</span>
                   </button>
                   <div className="plx-source-chip">
@@ -215,7 +272,7 @@ export default function Dashboard() {
                   <button className="plx-toolbar-btn" title="Voice input">
                     <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>mic</span>
                   </button>
-                  {draft.trim() ? (
+                  {(draft.trim() || selectedImage) ? (
                     <button
                       className="plx-send-btn"
                       onClick={() => onSubmit()}
@@ -296,7 +353,14 @@ export default function Dashboard() {
                     className={`plx-msg-row plx-msg-row--${msg.role === "user" ? "user" : "ai"}`}
                   >
                     <div className={`plx-msg-bubble ${msg.role === "user" ? "plx-msg-bubble--user" : "plx-msg-bubble--ai"}`}>
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      {msg.image ? (
+                        <img
+                          src={msg.image}
+                          alt="Uploaded message"
+                          className="plx-msg-image"
+                        />
+                      ) : null}
+                      {msg.content ? <ReactMarkdown>{msg.content}</ReactMarkdown> : null}
                     </div>
                   </div>
                 ))}
@@ -312,28 +376,41 @@ export default function Dashboard() {
 
               {/* Floating input bar */}
               <div className="plx-chat-input-wrap">
-                <div className="plx-chat-input-box">
-                  <button className="plx-toolbar-btn">
-                    <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>add</span>
-                  </button>
-                  <textarea
-                    ref={textareaRef}
-                    className="plx-chat-textarea gpt-scrollbar"
-                    placeholder="Ask anything..."
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    rows={1}
-                  />
-                  <div className="plx-chat-input-actions">
-                    <button className="plx-toolbar-btn">
-                      <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>mic</span>
+                <div className="plx-chat-input-box plx-chat-input-box--has-preview">
+                  {/* Image preview inside the input box */}
+                  {selectedImage && (
+                    <div className="plx-image-preview-strip">
+                      <div className="plx-image-preview-thumb">
+                        <img src={selectedImage.previewUrl} alt="Selected" />
+                        <button className="plx-image-preview-remove" onClick={clearSelectedImage} title="Remove image">
+                          <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>close</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="plx-chat-input-row">
+                    <button className="plx-toolbar-btn" onClick={triggerImagePicker} disabled={isLoading}>
+                      <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>add</span>
                     </button>
-                    {draft.trim() && (
-                      <button className="plx-send-btn" onClick={() => onSubmit()} disabled={isLoading}>
-                        <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_upward</span>
+                    <textarea
+                      ref={textareaRef}
+                      className="plx-chat-textarea gpt-scrollbar"
+                      placeholder={selectedImage ? "Add a message (optional)..." : "Ask anything..."}
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      rows={1}
+                    />
+                    <div className="plx-chat-input-actions">
+                      <button className="plx-toolbar-btn">
+                        <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>mic</span>
                       </button>
-                    )}
+                      {(draft.trim() || selectedImage) && (
+                        <button className="plx-send-btn" onClick={() => onSubmit()} disabled={isLoading}>
+                          <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_upward</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

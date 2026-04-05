@@ -31,6 +31,10 @@
   overflow: hidden;
 }
 
+.plx-hidden-file-input {
+  display: none;
+}
+
 /* ── NARROW ICON SIDEBAR (~52px) ── */
 .plx-sidebar {
   display: flex;
@@ -442,6 +446,17 @@
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
 }
 
+.plx-msg-image {
+  width: 100%;
+  max-width: 420px;
+  max-height: 420px;
+  display: block;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 /* Loading dots */
 .plx-loading-row {
   display: flex;
@@ -491,6 +506,23 @@
 .plx-chat-input-box:focus-within {
   border-color: rgba(120, 160, 255, 0.3);
   box-shadow: 0 0 0 3px rgba(120, 160, 255, 0.08);
+}
+
+/* When image is staged, switch to vertical card layout */
+.plx-chat-input-box--has-preview {
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: var(--plx-radius-card);
+  padding: 12px 14px 10px;
+  gap: 0;
+}
+
+/* Inner row for controls + textarea when in preview mode */
+.plx-chat-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
 .plx-chat-textarea {
@@ -735,3 +767,52 @@
   background: var(--plx-active) !important;
   color: var(--plx-text) !important;
 }
+
+/* ── IMAGE PREVIEW STRIP (inside input card/box) ── */
+.plx-image-preview-strip {
+  padding: 4px 4px 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.plx-image-preview-thumb {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111;
+  flex-shrink: 0;
+}
+
+.plx-image-preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.plx-image-preview-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s;
+}
+.plx-image-preview-remove:hover {
+  background: rgba(220, 60, 60, 0.85);
+}
+
+

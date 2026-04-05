@@ -1,4 +1,5 @@
 import { generateChatTitle, generateResponse } from "../services/ai.servies.js";
+import { processImage } from "../services/image.process.js";
 import chatModel from "../models/chat.model.js";
 import messageModel from "../models/message.model.js";
 import { uploadToImageKit } from "../services/imagekit.services.js";
@@ -95,6 +96,10 @@ export async function sendImageMessage(req, res) {
 
     const uploadedImage = await uploadToImageKit(req.file);
 
+    // Convert local buffer to base64 Data URL for Gemini
+    const base64Image = req.file.buffer.toString("base64");
+    const dataUrl = `data:${req.file.mimetype};base64,${base64Image}`;
+
     const userMessage = await messageModel.create({
       chat: resolvedChatId,
       content: content || "",
@@ -103,10 +108,20 @@ export async function sendImageMessage(req, res) {
       messageType: "image",
     });
 
+    // Send image Data URL + user text to Gemini for AI response
+    const aiResult = await processImage(dataUrl, content || "");
+
+    const aiMessage = await messageModel.create({
+      chat: resolvedChatId,
+      content: aiResult,
+      role: "ai",
+    });
+
     return res.status(200).json({
       message: "Image message sent successfully",
       chat,
       userMessage,
+      aiMessage,
     });
   } catch (error) {
     return res.status(500).json({
@@ -114,3 +129,4 @@ export async function sendImageMessage(req, res) {
     });
   }
 }
+
