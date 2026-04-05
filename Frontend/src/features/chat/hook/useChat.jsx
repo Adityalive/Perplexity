@@ -57,6 +57,7 @@ export function useChat() {
           content: data.aiMessage.content,
           role: data.aiMessage.role,
           sources: data.aiMessage.sources || [],
+          followUps: data.aiMessage.followUps || [],
         })
       );
 

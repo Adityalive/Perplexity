@@ -11,6 +11,10 @@ export function getLastSearchSources() {
     return lastSearchSources;
 }
 
+export function clearSearchSources() {
+    lastSearchSources = [];
+}
+
 export const searchInternet = async ({ query }) => {
     const results = await tavily.search(query, {
         maxResults: 5,

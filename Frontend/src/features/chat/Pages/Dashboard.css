@@ -861,5 +861,52 @@
   text-overflow: ellipsis;
 }
 
+/* ── FOLLOW-UP CHIPS ── */
+.plx-followups-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
 
+.plx-followup-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--plx-text);
+  font-size: 13.5px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  font-family: inherit;
+  line-height: 1.4;
+}
 
+.plx-followup-chip:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(120, 160, 255, 0.25);
+  transform: translateX(2px);
+}
+
+.plx-followup-chip:active {
+  transform: translateX(4px);
+  background: rgba(120, 160, 255, 0.08);
+}
+
+.plx-followup-icon {
+  font-size: 15px !important;
+  color: var(--plx-text-dim);
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.plx-followup-chip:hover .plx-followup-icon {
+  color: rgba(120, 160, 255, 0.8);
+}

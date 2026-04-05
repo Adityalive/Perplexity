@@ -22,8 +22,8 @@ const chatSlice = createSlice({
             };
         },
         addNewMessage: (state, action) => {
-            const { chatId, content, role, image = null, messageType = "text", sources = [] } = action.payload;
-            state.chats[chatId].messages.push({ content, role, image, messageType, sources });
+            const { chatId, content, role, image = null, messageType = "text", sources = [], followUps = [] } = action.payload;
+            state.chats[chatId].messages.push({ content, role, image, messageType, sources, followUps });
         },
         addMessages: (state, action) => {
             const { chatId, messages } = action.payload;

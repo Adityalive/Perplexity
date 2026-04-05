@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import ReactMarkdown from "react-markdown";
 import { useChat } from "../hook/useChat";
@@ -32,6 +33,8 @@ export default function Dashboard() {
     handleSendImageMessage,
   } = useChat();
   const { chats, currentChatId, isLoading } = useSelector((state) => state.chat);
+  const { slug, chatId: routeChatId } = useParams();
+  const navigate = useNavigate();
   const [draft, setDraft] = useState("");
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [viewMode, setViewMode] = useState("home"); // home, chat, library
@@ -42,20 +45,30 @@ export default function Dashboard() {
   const activeChat = currentChatId ? chats[currentChatId] : null;
   const activeMessages = activeChat?.messages ?? [];
 
-  // Synchronize viewMode with chat interaction
+  // Sync URL -> Chat State
   useEffect(() => {
-    if (currentChatId) {
+    if (routeChatId && chats) {
+      if (currentChatId !== routeChatId) {
+        handleOpenChat(routeChatId, chats).catch(e => console.error("URL Load Error:", e));
+      }
       setViewMode("chat");
-    } else if (viewMode === "chat") {
+    } else if (!routeChatId && viewMode === "chat") {
+      // If we go back to '/' from a chat, we should clear active chat
+      dispatch(setCurrentChatId(null));
       setViewMode("home");
     }
-  }, [currentChatId]);
+  }, [routeChatId, chats]); // Omitting currentChatId to avoid infinite loops, we only care when route changes
 
   const chatList = useMemo(() => {
     return Object.values(chats || {}).sort(
       (a, b) => new Date(b.lastUpdated || b.createdAt) - new Date(a.lastUpdated || a.createdAt)
     );
   }, [chats]);
+
+  function generateSlug(title) {
+    if (!title || typeof title !== 'string') return "chat";
+    return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") || "chat";
+  }
 
   // Load fonts
   useEffect(() => {
@@ -101,17 +114,24 @@ export default function Dashboard() {
   }, [draft]);
 
   async function openChat(chatId) {
-    try { await handleOpenChat(chatId, chats); } catch (e) { console.error(e); }
+    try { 
+      await handleOpenChat(chatId, chats);
+      const chatTitle = chats[chatId]?.title || "chat";
+      const newSlug = generateSlug(chatTitle);
+      navigate(`/search/${newSlug}/${chatId}`);
+    } catch (e) { console.error(e); }
   }
 
   async function onSubmit(queryText) {
     const message = (queryText || draft).trim();
     if (isLoading) return;
 
+    let data;
+
     if (selectedImage) {
       // Send image (with optional text)
       try {
-        await handleSendImageMessage({
+        data = await handleSendImageMessage({
           file: selectedImage.file,
           content: message,
           chatId: currentChatId,
@@ -122,14 +142,23 @@ export default function Dashboard() {
         setDraft("");
         if (imageInputRef.current) imageInputRef.current.value = "";
       }
-      return;
+    } else {
+      if (!message) return;
+      setDraft("");
+      try {
+        data = await handleSendMessage({ message, chatId: currentChatId });
+      } catch (e) { console.error(e); }
     }
 
-    if (!message) return;
-    setDraft("");
-    try {
-      await handleSendMessage({ message, chatId: currentChatId });
-    } catch (e) { console.error(e); }
+    if (data) {
+      const returnedChatId = data.chat?._id || currentChatId;
+      const returnedTitle = data.title || data.chat?.title || "chat";
+      
+      // If we just created a new chat, push the new URL to address bar
+      if (!currentChatId || currentChatId !== returnedChatId) {
+        navigate(`/search/${generateSlug(returnedTitle)}/${returnedChatId}`);
+      }
+    }
   }
 
   function handleImageSelection(e) {
@@ -155,6 +184,7 @@ export default function Dashboard() {
     setViewMode("home");
     setDraft("");
     clearSelectedImage();
+    navigate("/");
   }
 
   const handleKeyDown = (e) => {
@@ -202,6 +232,15 @@ export default function Dashboard() {
           onClick={() => setViewMode("library")}
         >
           <span className="material-symbols-outlined">history</span>
+        </button>
+
+        {/* Music */}
+        <button 
+          className="plx-icon-btn" 
+          title="Music" 
+          onClick={() => navigate("/music")}
+        >
+          <span className="material-symbols-outlined">music_note</span>
         </button>
 
         <div className="plx-sidebar-grow" />
@@ -380,6 +419,25 @@ export default function Dashboard() {
                         <img src={msg.image} alt="Uploaded message" className="plx-msg-image" />
                       ) : null}
                       {msg.content ? <ReactMarkdown>{msg.content}</ReactMarkdown> : null}
+
+                      {/* Follow-up suggestions — only on last AI message */}
+                      {msg.role === "ai" && msg.followUps?.length > 0 && idx === activeMessages.length - 1 && (
+                        <div className="plx-followups-row">
+                          {msg.followUps.map((q, fi) => (
+                            <button
+                              key={fi}
+                              className="plx-followup-chip"
+                              onClick={() => {
+                                setDraft(q);
+                                textareaRef.current?.focus();
+                              }}
+                            >
+                              <span className="material-symbols-outlined plx-followup-icon">arrow_forward</span>
+                              {q}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

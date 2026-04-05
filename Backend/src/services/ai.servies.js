@@ -2,7 +2,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatMistralAI } from "@langchain/mistralai"
 import { HumanMessage, SystemMessage, AIMessage, tool, createAgent } from "langchain";
 import * as z from "zod";
-import { searchInternet, getLastSearchSources } from "./internet.service.js";
+import { searchInternet, getLastSearchSources, clearSearchSources } from "./internet.service.js";
 
 const geminiModel = new ChatGoogleGenerativeAI({
     model: "gemini-flash-latest",
@@ -55,7 +55,8 @@ function normalizeChatTitle(rawTitle, fallbackMessage = "") {
 }
 
 export async function generateResponse(messages) {
-    console.log(messages)
+    console.log(messages);
+    clearSearchSources();
 
     const response = await agent.invoke({
         messages: [
@@ -102,7 +103,24 @@ Be warm but efficient. Avoid over-explaining unless the user asks for detail. Ma
     const text = response.messages[response.messages.length - 1].text;
     const sources = getLastSearchSources();
 
-    return { text, sources };
+    // Generate follow-up questions based on the last user message + AI response
+    let followUps = [];
+    try {
+        const lastUserMsg = messages.filter(m => m.role === "user").at(-1)?.content || "";
+        const followUpResponse = await mistralModel.invoke([
+            new SystemMessage(`You are an assistant that generates follow-up questions. 
+Given a user's question and the AI's answer, generate exactly 3 short, relevant follow-up questions the user might ask next.
+Return ONLY a JSON array of 3 strings. No explanation, no markdown, no preamble. Example: ["Question 1?", "Question 2?", "Question 3?"]`),
+            new HumanMessage(`User asked: "${lastUserMsg}"\n\nAI answered: "${text.slice(0, 500)}"\n\nGenerate 3 follow-up questions as a JSON array.`)
+        ]);
+        const raw = followUpResponse.text?.trim();
+        const match = raw.match(/\[[\s\S]*?\]/);
+        if (match) followUps = JSON.parse(match[0]);
+    } catch (e) {
+        console.warn("Follow-up generation failed:", e.message);
+    }
+
+    return { text, sources, followUps };
 
 }
 

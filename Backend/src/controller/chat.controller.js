@@ -26,13 +26,14 @@ export async function sendMessage(req, res) {
   });
 
   const messages = await messageModel.find({ chat: resolvedChatId });
-  const { text: result, sources } = await generateResponse(messages);
+  const { text: result, sources, followUps } = await generateResponse(messages);
 
   const aiMessage = await messageModel.create({
     chat: resolvedChatId,
     content: result,
     role: "ai",
     sources: sources || [],
+    followUps: followUps || [],
   });
 
   res.status(200).json({

@@ -1,3 +1,17 @@
 groq=image procession ;
 Hugging Face =image generation;
+More features:
+1. Citations & Sources — Whenever the AI searches the web (via the 
+internet.service.js
+), we can parse the search results and display the source links/favicon cards at the top or bottom of every response, just like real Perplexity.
+2. Related Questions (Follow-ups) — Automatically generating 3-4 clickable "Suggested Follow-ups" at the end of every AI answer to keep the conversation going.
+3. Chat History Categorization — Organizing the sidebar history by time periods (Today, Yesterday, Last 7 Days, etc.) instead of just one long list.
+4. Markdown Logic for Images — Enhancing the AI response processing so the AI can "think" about where to place images or charts in its markdown responses.
 
+One more featres of community type thing where any one can uplod there project and it will be listed there with like and dislike feature ,more like communit based project source concept
+
+Link my yt msic to my ai and ai will decide which music  to play on basic on my taste hich is begin stored in my db probally will use vector db and embediding and rag ,to collect music taste and probally will find the model on huffing face for music recomendation .
+
+Will use Rabbitmq for producer and consumer ,as many agent are working need to see that 
+
+Researcher tool: this tool will search the whole web and fucking Research  about the [topic] and give the answer in a structured format ,with a great resaech type way from in and out i will not conclude any thing unless teacher asked him to do anything ,it will be like a fucking research paper 
