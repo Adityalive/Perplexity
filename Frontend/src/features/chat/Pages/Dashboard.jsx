@@ -353,12 +353,31 @@ export default function Dashboard() {
                     className={`plx-msg-row plx-msg-row--${msg.role === "user" ? "user" : "ai"}`}
                   >
                     <div className={`plx-msg-bubble ${msg.role === "user" ? "plx-msg-bubble--user" : "plx-msg-bubble--ai"}`}>
+                      {/* Sources / Citations — only on AI messages */}
+                      {msg.role === "ai" && msg.sources?.length > 0 && (
+                        <div className="plx-sources-row">
+                          {msg.sources.map((src, i) => (
+                            <a
+                              key={i}
+                              href={src.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="plx-source-card"
+                              title={src.title}
+                            >
+                              <img
+                                src={src.favicon}
+                                alt={src.domain}
+                                className="plx-source-favicon"
+                                onError={(e) => { e.target.style.display = "none"; }}
+                              />
+                              <span className="plx-source-domain">{src.domain}</span>
+                            </a>
+                          ))}
+                        </div>
+                      )}
                       {msg.image ? (
-                        <img
-                          src={msg.image}
-                          alt="Uploaded message"
-                          className="plx-msg-image"
-                        />
+                        <img src={msg.image} alt="Uploaded message" className="plx-msg-image" />
                       ) : null}
                       {msg.content ? <ReactMarkdown>{msg.content}</ReactMarkdown> : null}
                     </div>

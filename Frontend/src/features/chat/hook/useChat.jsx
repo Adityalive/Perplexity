@@ -56,6 +56,7 @@ export function useChat() {
           chatId: resolvedChatId,
           content: data.aiMessage.content,
           role: data.aiMessage.role,
+          sources: data.aiMessage.sources || [],
         })
       );
 

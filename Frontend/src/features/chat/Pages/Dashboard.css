@@ -815,4 +815,51 @@
   background: rgba(220, 60, 60, 0.85);
 }
 
+/* ── CITATIONS / SOURCES ROW ── */
+.plx-sources-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.plx-source-card {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 5px 10px 5px 7px;
+  text-decoration: none;
+  color: var(--plx-text-dim);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  max-width: 160px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.plx-source-card:hover {
+  background: rgba(120, 160, 255, 0.1);
+  border-color: rgba(120, 160, 255, 0.3);
+  color: var(--plx-text);
+}
+
+.plx-source-favicon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.plx-source-domain {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
 

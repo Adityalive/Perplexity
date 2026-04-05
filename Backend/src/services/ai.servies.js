@@ -2,7 +2,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatMistralAI } from "@langchain/mistralai"
 import { HumanMessage, SystemMessage, AIMessage, tool, createAgent } from "langchain";
 import * as z from "zod";
-import { searchInternet } from "./internet.service.js";
+import { searchInternet, getLastSearchSources } from "./internet.service.js";
 
 const geminiModel = new ChatGoogleGenerativeAI({
     model: "gemini-flash-latest",
@@ -99,7 +99,10 @@ Be warm but efficient. Avoid over-explaining unless the user asks for detail. Ma
             }))]
     });
 
-    return response.messages[response.messages.length - 1].text;
+    const text = response.messages[response.messages.length - 1].text;
+    const sources = getLastSearchSources();
+
+    return { text, sources };
 
 }
 

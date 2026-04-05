@@ -21,6 +21,17 @@ const messageSchema = new mongoose.Schema(
       enum: ["text", "image"],
       default: "text",
     },
+    sources: {
+      type: [
+        {
+          title: { type: String },
+          url: { type: String },
+          favicon: { type: String },
+          domain: { type: String },
+        },
+      ],
+      default: [],
+    },
     role: {
       type: String,
       required: true,
