@@ -1,0 +1,48 @@
+# Real YT Music Library Sync + AI Smart Playlist
+
+## Goal
+
+Upgrade the music feature so the AI agent **actually goes into the user's YT Music account** (using the cookie already provided), fetches their real data (liked songs, recently played, listen again), analyzes their taste with AI, and creates a smart playlist they can play in-app.
+
+## Flow
+
+```
+User connects YT Music (cookie) → Agent fetches real library data
+→ AI analyzes patterns (genres, artists, moods, languages)
+→ AI generates a personalized "Smart Playlist" with new song recommendations
+→ Songs display in a playlist view → user plays them in-app
+```
+
+## Proposed Changes
+
+### Backend
+
+#### [MODIFY] [package.json](file:///c:/Users/KIIT0001/Desktop/Perplexity/Backend/package.json) — Install `@codyduong/ytmusicapi`
+- This package (unlike `ytmusic-api`) supports authenticated calls: `getLibrarySongs()`, `getHistory()`, `getLikedSongs()`
+- Already archived but still functional
+
+#### [MODIFY] [music.service.js](file:///c:/Users/KIIT0001/Desktop/Perplexity/Backend/src/services/music.service.js)
+- **[syncLibrary(userId)](file:///c:/Users/KIIT0001/Desktop/Perplexity/Backend/src/services/music.service.js#39-84)** — Replace generic search with real authenticated API calls:
+  - `ytm.getHistory()` → recently played songs
+  - `ytm.getLibrarySongs()` → library songs
+  - `ytm.getLikedSongs()` → liked songs
+  - Store all fetched songs in the `likedSongs` array in MongoDB
+- **[getRecommendations(userId)](file:///c:/Users/KIIT0001/Desktop/Perplexity/Backend/src/services/music.service.js#131-200)** — AI reads the REAL synced songs, analyzes patterns, generates smart search queries to find similar new music
+
+#### [MODIFY] [musicTaste.model.js](file:///c:/Users/KIIT0001/Desktop/Perplexity/Backend/src/models/musicTaste.model.js)
+- Add `syncedHistory` array to store recently played songs separately
+- Add `lastSyncedAt` timestamp
+
+### Frontend
+
+#### [MODIFY] [MusicPage.jsx](file:///c:/Users/KIIT0001/Desktop/Perplexity/Frontend/src/features/music/Pages/MusicPage.jsx)
+- After cookie connect → auto-trigger [syncLibrary](file:///c:/Users/KIIT0001/Desktop/Perplexity/Backend/src/services/music.service.js#39-84) → show "Syncing X songs from your library..."
+- Add a "Your Library" section above the recommendation grid showing synced songs
+- Rename current grid to "AI Smart Playlist — based on your library"
+
+## Verification
+
+1. User pastes cookie → connect succeeds
+2. Sync fetches real songs from their YT Music account
+3. AI analyzes the real songs and generates recommendations
+4. Songs play in the embedded YouTube player

@@ -5,22 +5,52 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export async function getRecommendations() {
-  const response = await api.get("/recommendations");
-  return response.data;
+export async function connectYTMusic(cookie) {
+  const res = await api.post("/connect", { cookie });
+  return res.data;
+}
+
+export async function syncLibrary() {
+  const res = await api.post("/sync");
+  return res.data;
+}
+
+export async function generatePlaylists() {
+  const res = await api.post("/playlists/generate");
+  return res.data;
+}
+
+export async function getCachedPlaylists() {
+  const res = await api.get("/playlists");
+  return res.data;
+}
+
+export async function getLibrary() {
+  const res = await api.get("/library");
+  return res.data;
+}
+
+export async function savePreferences({ genres, artists }) {
+  const res = await api.post("/onboard", { genres, artists });
+  return res.data;
+}
+
+export async function getStatus() {
+  const res = await api.get("/status");
+  return res.data;
 }
 
 export async function searchMusic(query) {
-  const response = await api.get("/search", { params: { q: query } });
-  return response.data;
+  const res = await api.get("/search", { params: { q: query } });
+  return res.data;
 }
 
 export async function likeSong(song) {
-  const response = await api.post("/like", song);
-  return response.data;
+  const res = await api.post("/like", song);
+  return res.data;
 }
 
 export async function dislikeSong(song) {
-  const response = await api.post("/dislike", song);
-  return response.data;
+  const res = await api.post("/dislike", song);
+  return res.data;
 }

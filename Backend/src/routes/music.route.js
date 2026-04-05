@@ -1,7 +1,13 @@
 import { Router } from "express";
 import { authverify } from "../middleware/auth.middleware.js";
 import {
-  getMusicRecommendations,
+  connectHandler,
+  syncHandler,
+  playlistsHandler,
+  cachedPlaylistsHandler,
+  libraryHandler,
+  onboardHandler,
+  statusHandler,
   searchMusicHandler,
   likeSongHandler,
   dislikeSongHandler,
@@ -9,7 +15,13 @@ import {
 
 const musicRouter = Router();
 
-musicRouter.get("/recommendations", authverify, getMusicRecommendations);
+musicRouter.post("/connect", authverify, connectHandler);
+musicRouter.post("/sync", authverify, syncHandler);
+musicRouter.post("/playlists/generate", authverify, playlistsHandler);
+musicRouter.get("/playlists", authverify, cachedPlaylistsHandler);
+musicRouter.get("/library", authverify, libraryHandler);
+musicRouter.post("/onboard", authverify, onboardHandler);
+musicRouter.get("/status", authverify, statusHandler);
 musicRouter.get("/search", authverify, searchMusicHandler);
 musicRouter.post("/like", authverify, likeSongHandler);
 musicRouter.post("/dislike", authverify, dislikeSongHandler);
