@@ -14,4 +14,4 @@ Link my yt msic to my ai and ai will decide which music  to play on basic on my 
 
 Will use Rabbitmq for producer and consumer ,as many agent are working need to see that 
 
-Researcher tool: this tool will search the whole web and fucking Research  about the [topic] and give the answer in a structured format ,with a great resaech type way from in and out i will not conclude any thing unless teacher asked him to do anything ,it will be like a fucking research paper 
+Researcher tool: this tool will search the whole web and fucking Research  about the [topic] and give the answer in a structured format ,with a great resaech type way from in and out it will not conclude any thing unless teacher asked him to do anything ,it will be like a fucking research paper 

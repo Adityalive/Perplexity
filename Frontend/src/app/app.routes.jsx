@@ -4,6 +4,7 @@ import LoginPage from '../features/auth/pages/LoginPage';
 import Protected from '../features/auth/components/Protected';
 import Dashboard from '../features/chat/Pages/Dashboard';
 import MusicPage from '../features/music/Pages/MusicPage';
+import ResearchPage from '../features/research/Pages/ResearchPage.jsx';
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
   {
     path: '/music',
     element: <Protected><MusicPage /></Protected>,
+  },
+  {
+    path: '/research',
+    element: <Protected><ResearchPage /></Protected>,
   },
   {
     path: '/register',

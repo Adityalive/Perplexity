@@ -20,6 +20,26 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* KaTeX uses internal margin/padding for positioning — restore them */
+.katex,
+.katex * {
+  margin: revert;
+  padding: revert;
+  box-sizing: revert;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  line-height: normal !important;
+  text-indent: 0;
+}
+.katex-html {
+  white-space: nowrap !important;
+}
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5em 0;
+}
+
 /* ── ROOT LAYOUT ── */
 .plx-root {
   display: flex;
@@ -440,10 +460,30 @@
   max-width: 100%;
   padding: 18px 22px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
+  overflow-x: auto;
   overflow-wrap: break-word;
   word-break: break-word;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* ── KaTeX math overrides ── */
+/* Prevent word-break from splitting KaTeX's internal elements */
+.plx-msg-bubble .katex,
+.plx-msg-bubble .katex * {
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+.plx-msg-bubble .katex-html {
+  white-space: nowrap !important;
+}
+
+.plx-msg-bubble .katex-display {
+  margin: 16px 0;
+  padding: 8px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .plx-msg-image {

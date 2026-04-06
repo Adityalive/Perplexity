@@ -2,9 +2,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import { useChat } from "../hook/useChat";
 import { setCurrentChatId } from "../chat.slice";
 import "./Dashboard.css";
+
+const preprocessMath = (content) => {
+  if (!content) return content;
+  return content
+    .replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$1$$$$')
+    .replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
+};
 
 // Suggestion data for the home screen
 const SUGGESTIONS = [
@@ -52,12 +62,12 @@ export default function Dashboard() {
         handleOpenChat(routeChatId, chats).catch(e => console.error("URL Load Error:", e));
       }
       setViewMode("chat");
-    } else if (!routeChatId && viewMode === "chat") {
-      // If we go back to '/' from a chat, we should clear active chat
+    } else if (!routeChatId) {
+      // No chatId in URL = new chat / home screen — always clear active chat
       dispatch(setCurrentChatId(null));
       setViewMode("home");
     }
-  }, [routeChatId, chats]); // Omitting currentChatId to avoid infinite loops, we only care when route changes
+  }, [routeChatId]); // Only re-run when the URL chatId changes
 
   const chatList = useMemo(() => {
     return Object.values(chats || {}).sort(
@@ -89,15 +99,15 @@ export default function Dashboard() {
     };
   }, [disconnectSocketConnection, initializeSocketConnection]);
 
-  // Bootstrap chats on mount
+  // Bootstrap — only load chat list on mount, NEVER auto-open a chat
+  // (auto-opening the first chat was causing new messages to go to the wrong chat)
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const data = await handleGetChats();
-        if (!alive) return;
-        const firstId = data?.chats?.[0]?._id;
-        if (firstId) await handleOpenChat(firstId, Object.keys(chats).length ? chats : data.chats);
+        await handleGetChats();
+        // If the URL already has a chatId, the URL-sync effect above will open it.
+        // If URL is '/', stay on home — do NOT auto-open anything.
       } catch (e) {
         console.error("Bootstrap:", e);
       }
@@ -183,11 +193,11 @@ export default function Dashboard() {
   }
 
   function startNewConversation() {
-    dispatch(setCurrentChatId(null));
-    setViewMode("home");
+    dispatch(setCurrentChatId(null));  // clear active chat in Redux
+    setViewMode("home");               // switch UI back to home screen
     setDraft("");
     clearSelectedImage();
-    navigate("/");
+    navigate("/");                     // clear chatId from URL
   }
 
   const handleKeyDown = (e) => {
@@ -244,6 +254,15 @@ export default function Dashboard() {
           onClick={() => navigate("/music")}
         >
           <span className="material-symbols-outlined">music_note</span>
+        </button>
+
+        {/* Research */}
+        <button 
+          className="plx-icon-btn" 
+          title="Deep Research" 
+          onClick={() => navigate("/research")}
+        >
+          <span className="material-symbols-outlined">biotech</span>
         </button>
 
         <div className="plx-sidebar-grow" />
@@ -421,7 +440,14 @@ export default function Dashboard() {
                       {msg.image ? (
                         <img src={msg.image} alt="Uploaded message" className="plx-msg-image" />
                       ) : null}
-                      {msg.content ? <ReactMarkdown>{msg.content}</ReactMarkdown> : null}
+                      {msg.content ? (
+                        <ReactMarkdown
+                          remarkPlugins={[remarkMath]}
+                          rehypePlugins={[rehypeKatex]}
+                        >
+                          {preprocessMath(msg.content)}
+                        </ReactMarkdown>
+                      ) : null}
 
                       {/* Follow-up suggestions — only on last AI message */}
                       {msg.role === "ai" && msg.followUps?.length > 0 && idx === activeMessages.length - 1 && (

@@ -7,6 +7,7 @@ import cors from "cors";
 import morgan from "morgan";
 import chatRouter from "./routes/chat.route.js";
 import musicRouter from "./routes/music.route.js";
+import researchRouter from "./routes/research.route.js";
 connectDB();
 
 const app = express();
@@ -34,5 +35,6 @@ app.get("/", (req, res) => {
 app.use("/api/users", userRouter);
 app.use("/api/chats", chatRouter);
 app.use("/api/music", musicRouter);
+app.use("/api/research", researchRouter);
 
 export default app;
