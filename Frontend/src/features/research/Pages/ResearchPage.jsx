@@ -1,18 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
+import { MathJax } from "better-react-mathjax";
 import { useNavigate } from "react-router-dom";
 import { runDeepResearch } from "../services/research.api.js";
 import "./ResearchPage.css";
-
-const preprocessMath = (content) => {
-  if (!content) return content;
-  return content
-    .replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$1$$$$')
-    .replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
-};
 
 const EXAMPLE_TOPICS = [
   "Quantum Computing",
@@ -193,12 +184,9 @@ export default function ResearchPage() {
 
           {/* Report */}
           <div className="rp-report">
-            <ReactMarkdown
-              remarkPlugins={[remarkMath]}
-              rehypePlugins={[rehypeKatex]}
-            >
-              {preprocessMath(result.report)}
-            </ReactMarkdown>
+            <MathJax dynamic>
+              <ReactMarkdown>{result.report}</ReactMarkdown>
+            </MathJax>
           </div>
 
           {/* Queries used */}

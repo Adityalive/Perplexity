@@ -46,7 +46,13 @@ const YTM_CLIENT = {
 };
 
 async function ytmApiCall(endpoint, body, cookie) {
-  const url = `${YTM_BASE}/${endpoint}?alt=json&key=AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30`;
+  // Use environment variable for the API key to prevent secret detection scanners from flagging it.
+  // Note: The YT Music web client uses a specific public key pattern. Set YOUTUBE_API_KEY in your .env file.
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) {
+    console.warn("[YTM] Warning: YOUTUBE_API_KEY is not set in environment variables.");
+  }
+  const url = `${YTM_BASE}/${endpoint}?alt=json&key=${apiKey}`;
   const res = await fetch(url, {
     method: "POST",
     headers: {

@@ -2,19 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import ReactMarkdown from "react-markdown";
-import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import "katex/dist/katex.min.css";
+import { MathJax } from "better-react-mathjax";
 import { useChat } from "../hook/useChat";
 import { setCurrentChatId } from "../chat.slice";
 import "./Dashboard.css";
-
-const preprocessMath = (content) => {
-  if (!content) return content;
-  return content
-    .replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$1$$$$')
-    .replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
-};
 
 // Suggestion data for the home screen
 const SUGGESTIONS = [
@@ -441,12 +432,9 @@ export default function Dashboard() {
                         <img src={msg.image} alt="Uploaded message" className="plx-msg-image" />
                       ) : null}
                       {msg.content ? (
-                        <ReactMarkdown
-                          remarkPlugins={[remarkMath]}
-                          rehypePlugins={[rehypeKatex]}
-                        >
-                          {preprocessMath(msg.content)}
-                        </ReactMarkdown>
+                        <MathJax dynamic>
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        </MathJax>
                       ) : null}
 
                       {/* Follow-up suggestions — only on last AI message */}
