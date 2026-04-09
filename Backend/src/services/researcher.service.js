@@ -1,6 +1,7 @@
 import { tavily as Tavily } from "@tavily/core";
 import { ChatMistralAI } from "@langchain/mistralai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { CliPrettify } from "markdown-table-prettify";
 
 const tavilyClient = Tavily({ apiKey: process.env.TAVILY_API_KEY });
 
@@ -148,6 +149,13 @@ Write the full structured research document now.`),
     // Strip wrapping ```markdown and ``` if the AI still returns them
     let cleanText = response.text || "";
     cleanText = cleanText.replace(/^```markdown\s*/i, "").replace(/```$/i, "").trim();
+
+    // Prettify markdown tables in the research report
+    try {
+        cleanText = CliPrettify.prettify(cleanText);
+    } catch (e) {
+        console.warn("Table prettification failed:", e.message);
+    }
 
     return cleanText;
 }

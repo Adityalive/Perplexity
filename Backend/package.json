@@ -26,6 +26,7 @@
     "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "langchain": "^1.2.39",
+    "markdown-table-prettify": "^3.7.0",
     "mongoose": "^9.3.0",
     "morgan": "^1.10.1",
     "multer": "^2.1.1",

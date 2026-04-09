@@ -3,11 +3,9 @@ import { ChatMistralAI } from "@langchain/mistralai"
 import { HumanMessage, SystemMessage, AIMessage, tool, createAgent } from "langchain";
 import * as z from "zod";
 import { searchInternet, getLastSearchSources, clearSearchSources } from "./internet.service.js";
+import { CliPrettify } from "markdown-table-prettify";
 
-const geminiModel = new ChatGoogleGenerativeAI({
-    model: "gemini-flash-latest",
-    apiKey: process.env.GEMINI_API_KEY
-});
+
 
 const mistralModel = new ChatMistralAI({
     model: "mistral-medium-latest",
@@ -102,10 +100,16 @@ Be warm but efficient. Avoid over-explaining unless the user asks for detail. Ma
             ...trimmedMessages]
     });
 
-    const text = response.messages[response.messages.length - 1].text;
-    const sources = getLastSearchSources();
+    let text = response.messages[response.messages.length - 1].text;
+    
+    // Prettify markdown tables in the response
+    try {
+        text = CliPrettify.prettify(text);
+    } catch (e) {
+        console.warn("Table prettification failed:", e.message);
+    }
 
-    // Generate follow-up questions based on the last user message + AI response
+    const sources = getLastSearchSources();
     let followUps = [];
     try {
         const lastUserMsg = messages.filter(m => m.role === "user").at(-1)?.content || "";
