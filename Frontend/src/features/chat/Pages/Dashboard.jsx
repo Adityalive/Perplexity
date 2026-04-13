@@ -40,6 +40,10 @@ export default function Dashboard() {
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [viewMode, setViewMode] = useState("home"); // home, chat, library
   const [selectedImage, setSelectedImage] = useState(null); // { file, previewUrl }
+  const [pinnedChats, setPinnedChats] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("plx-pinned") || "[]"); } catch { return []; }
+  });
+  const [recentsHovered, setRecentsHovered] = useState(null);
   const textareaRef = useRef(null);
   const imageInputRef = useRef(null);
 
@@ -191,12 +195,63 @@ export default function Dashboard() {
     navigate("/");                     // clear chatId from URL
   }
 
+  function togglePin(chatId, e) {
+    e.stopPropagation();
+    setPinnedChats(prev => {
+      const next = prev.includes(chatId) ? prev.filter(id => id !== chatId) : [...prev, chatId];
+      localStorage.setItem("plx-pinned", JSON.stringify(next));
+      return next;
+    });
+  }
+
+  const pinnedList = useMemo(() =>
+    chatList.filter(c => pinnedChats.includes(c._id || c.id)),
+  [chatList, pinnedChats]);
+
+  const recentList = useMemo(() =>
+    chatList.filter(c => !pinnedChats.includes(c._id || c.id)),
+  [chatList, pinnedChats]);
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       onSubmit();
     }
   };
+
+  function cleanTitle(chat) {
+    if (typeof chat.title !== "string") return "Untitled";
+    return chat.title.replace(/[\*\#\[\]\(\)\`]/g, "").trim() || "Untitled";
+  }
+
+  function renderChatItem(chat, isPinned) {
+    const id = chat._id || chat.id;
+    const isActive = currentChatId === id;
+    const isHovered = recentsHovered === id;
+    return (
+      <div
+        key={id}
+        className={`plx-recents-item${isActive ? " plx-recents-item--active" : ""}`}
+        onClick={() => openChat(id)}
+        onMouseEnter={() => setRecentsHovered(id)}
+        onMouseLeave={() => setRecentsHovered(null)}
+        title={cleanTitle(chat)}
+      >
+        <span className="plx-recents-item-text">{cleanTitle(chat)}</span>
+        {(isHovered || isActive || isPinned) && (
+          <button
+            className={`plx-pin-btn${isPinned ? " plx-pin-btn--pinned" : ""}`}
+            onClick={(e) => togglePin(id, e)}
+            title={isPinned ? "Unpin" : "Pin"}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>
+              {isPinned ? "push_pin" : "push_pin"}
+            </span>
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="plx-root">
@@ -211,7 +266,7 @@ export default function Dashboard() {
       {/* ── NARROW ICON SIDEBAR ── */}
       <aside className="plx-sidebar">
         {/* Logo icon */}
-        <div className="plx-logo-icon" title="Perplexity" onClick={() => setViewMode("home")}>
+        <div className="plx-logo-icon" title="Perplexity" onClick={() => { dispatch(setCurrentChatId(null)); setViewMode("home"); navigate("/"); }}>
           <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
             <path d="M16 2L2 10V22L16 30L30 22V10L16 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
             <path d="M16 2V30M2 10L30 22M30 10L2 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -232,7 +287,7 @@ export default function Dashboard() {
         {/* History / Library */}
         <button 
           className={`plx-icon-btn ${viewMode === "library" ? "plx-icon-btn--active" : ""}`} 
-          title="History" 
+          title="Library" 
           onClick={() => setViewMode("library")}
         >
           <span className="material-symbols-outlined">history</span>
@@ -258,6 +313,37 @@ export default function Dashboard() {
 
         <div className="plx-sidebar-grow" />
       </aside>
+
+      {/* ── RECENTS PANEL ── */}
+      {chatList.length > 0 && (
+        <aside className="plx-recents-panel gpt-scrollbar">
+          <div className="plx-recents-header">
+            <span className="plx-recents-title">Recents</span>
+            <button
+              className="plx-recents-new-btn"
+              title="New Thread"
+              onClick={startNewConversation}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>edit_square</span>
+            </button>
+          </div>
+
+          {pinnedList.length > 0 && (
+            <>
+              <div className="plx-recents-section-label">Pinned</div>
+              {pinnedList.map(chat => renderChatItem(chat, true))}
+              <div className="plx-recents-divider" />
+            </>
+          )}
+
+          {recentList.length > 0 && (
+            <>
+              {pinnedList.length > 0 && <div className="plx-recents-section-label">Recent</div>}
+              {recentList.map(chat => renderChatItem(chat, false))}
+            </>
+          )}
+        </aside>
+      )}
 
       {/* ── MAIN CONTENT ── */}
       <div className="plx-main">
@@ -375,27 +461,6 @@ export default function Dashboard() {
 
         {viewMode === "chat" && (
           <div className="plx-chat-wrapper">
-            {/* HISTORY PANEL — flex sibling, not absolute overlay */}
-            {chatList.length > 0 && (
-              <div className="plx-history-panel gpt-scrollbar">
-                <div className="plx-history-label">
-                  <span className="material-symbols-outlined" style={{ fontSize: "14px" }}>history</span>
-                  Recent
-                </div>
-                {chatList.map((chat) => (
-                  <div
-                    key={chat._id || chat.id}
-                    className={`plx-history-item${currentChatId === (chat._id || chat.id) ? " plx-history-item--active" : ""}`}
-                    onClick={() => openChat(chat._id || chat.id)}
-                  >
-                    {typeof chat.title === "string"
-                      ? chat.title.replace(/[\*\#\[\]\(\)\`]/g, "").trim() || "Untitled"
-                      : "Untitled"}
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* CHAT COLUMN — takes remaining width, centered content */}
             <div className="plx-chat-column">
               <main className="plx-chat-area gpt-scrollbar">
