@@ -3,10 +3,14 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    username: {
+    clerkId: {
       type: String,
       required: true,
       unique: true,
+    },
+    username: {
+      type: String,
+      required: true,
       trim: true,
     },
     email: {
@@ -16,33 +20,14 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
-    password: {
-      type: String,
-      required: true,
-      minlength: 6,
-      select: false,
-    },
-    verified: {
-      type: Boolean,
-      default: false,
-    },
   },
   {
     timestamps: true,
   }
 );
 
-userSchema.pre("save", async function () {
-  if (!this.isModified("password")) {
-    return;
-  }
-
-  this.password = await bcrypt.hash(this.password, 10);
-});
-
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
+// We no longer need password hashing since Clerk handles it
+const UserModel = mongoose.model("User", userSchema);
 
 const UserModel = mongoose.model("User", userSchema);
 

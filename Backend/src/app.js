@@ -1,6 +1,7 @@
 import "dotenv/config";
 import cookieParser from "cookie-parser";
 import express from "express";
+import { clerkMiddleware } from '@clerk/express';
 import userRouter from "./routes/user.route.js";
 import connectDB from "./config/database.js";
 import cors from "cors";
@@ -19,6 +20,7 @@ app.use(cors({
 app.use(morgan("dev"));
 app.use(cookieParser());
 app.use(express.json());
+app.use(clerkMiddleware());
 
 // Normalize accidental newline characters in URL paths (e.g. %0A).
 app.use((req, _res, next) => {

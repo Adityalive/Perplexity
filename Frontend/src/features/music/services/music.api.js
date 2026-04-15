@@ -5,6 +5,14 @@ const api = axios.create({
   withCredentials: true,
 });
 
+api.interceptors.request.use(async (config) => {
+  const token = await window.Clerk?.session?.getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export async function connectYTMusic(cookie) {
   const res = await api.post("/connect", { cookie });
   return res.data;

@@ -1,15 +1,15 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useAuth } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
 
 const Protected = ({ children }) => {
-  const { user, loading } = useSelector((state) => state.auth ?? {});
+  const { isLoaded, isSignedIn } = useAuth();
 
-  if (loading) {
+  if (!isLoaded) {
     return <div>Loading...</div>;
   }
 
-  if (!user) {
+  if (!isSignedIn) {
     return <Navigate to="/login" replace />;
   }
 

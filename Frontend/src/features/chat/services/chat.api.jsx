@@ -5,6 +5,14 @@ const api = axios.create({
   withCredentials: true,
 });
 
+api.interceptors.request.use(async (config) => {
+  const token = await window.Clerk?.session?.getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export async function getChats() {
   try {
     const response = await api.get("/chats");
@@ -57,6 +65,14 @@ export async function sendImageMessage({ chat, content,file }) {
 const imageApi = axios.create({
   baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/images` : "http://localhost:3000/api/images",
   withCredentials: true,
+});
+
+imageApi.interceptors.request.use(async (config) => {
+  const token = await window.Clerk?.session?.getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export async function generateImage({ prompt, model = "flux", width = 768, height = 1024, seed }) {

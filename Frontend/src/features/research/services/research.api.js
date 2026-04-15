@@ -5,6 +5,14 @@ const API = axios.create({
   withCredentials: true,
 });
 
+API.interceptors.request.use(async (config) => {
+  const token = await window.Clerk?.session?.getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export async function runDeepResearch(topic) {
   const { data } = await API.post("/research/research", { topic });
   return data; // { report, sources, queries }

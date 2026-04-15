@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@clerk/express": "^2.1.2",
     "@codyduong/ytmusicapi": "^0.4.6",
     "@langchain/core": "^1.1.33",
     "@langchain/google": "^0.1.7",

@@ -6,6 +6,7 @@ import { MathJax } from "better-react-mathjax";
 import { useChat } from "../hook/useChat";
 import { setCurrentChatId } from "../chat.slice";
 import { generateImage } from "../services/chat.api";
+import { UserButton } from "@clerk/clerk-react";
 import "./Dashboard.css";
 
 // Suggestion data for the home screen
@@ -424,6 +425,15 @@ export default function Dashboard() {
         </button>
 
         <div className="plx-sidebar-grow" />
+        
+        {/* Clerk User Button */}
+        <div style={{ marginBottom: "20px", display: "flex", justifyContent: "center" }}>
+          <UserButton 
+            appearance={{ 
+              elements: { userButtonAvatarBox: { width: "32px", height: "32px" } } 
+            }} 
+          />
+        </div>
       </aside>
 
       {/* ── RECENTS PANEL ── */}
