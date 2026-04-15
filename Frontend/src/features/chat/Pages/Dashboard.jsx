@@ -505,9 +505,29 @@ export default function Dashboard() {
               {/* Card bottom toolbar */}
               <div className="plx-card-toolbar">
                 <div className="plx-card-toolbar-left">
-                  <button className="plx-toolbar-btn" title="Attach image" onClick={triggerImagePicker} disabled={isLoading}>
-                    <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>add</span>
-                  </button>
+                  {/* + button with dropdown */}
+                  <div className="plx-add-menu-wrap" ref={addMenuRef} style={{ position: "relative" }}>
+                    <button
+                      className="plx-toolbar-btn"
+                      title="Add"
+                      onClick={() => setShowAddMenu(v => !v)}
+                      disabled={isLoading}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>add</span>
+                    </button>
+                    {showAddMenu && (
+                      <div className="plx-add-dropdown">
+                        <button className="plx-add-dropdown-item" onClick={() => { setShowAddMenu(false); triggerImagePicker(); }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>image</span>
+                          Attach Image
+                        </button>
+                        <button className="plx-add-dropdown-item" onClick={openImageGenModal}>
+                          <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>auto_awesome</span>
+                          Generate Image
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="plx-card-toolbar-right">
                   <button 
@@ -655,9 +675,24 @@ export default function Dashboard() {
                     </div>
                   )}
                   <div className="plx-chat-input-row">
-                    <button className="plx-toolbar-btn" onClick={triggerImagePicker} disabled={isLoading}>
-                      <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>add</span>
-                    </button>
+                    {/* + dropdown in chat */}
+                    <div className="plx-add-menu-wrap" ref={addMenuRef} style={{ position: "relative" }}>
+                      <button className="plx-toolbar-btn" onClick={() => setShowAddMenu(v => !v)} disabled={isLoading}>
+                        <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>add</span>
+                      </button>
+                      {showAddMenu && (
+                        <div className="plx-add-dropdown plx-add-dropdown--up">
+                          <button className="plx-add-dropdown-item" onClick={() => { setShowAddMenu(false); triggerImagePicker(); }}>
+                            <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>image</span>
+                            Attach Image
+                          </button>
+                          <button className="plx-add-dropdown-item" onClick={openImageGenModal}>
+                            <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>auto_awesome</span>
+                            Generate Image
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     <textarea
                       ref={textareaRef}
                       className="plx-chat-textarea gpt-scrollbar"
@@ -728,6 +763,77 @@ export default function Dashboard() {
         )}
 
       </div>
+
+      {/* ── IMAGE GENERATION MODAL ── */}
+      {showImageGenModal && (
+        <div className="plx-imggen-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowImageGenModal(false); }}>
+          <div className="plx-imggen-modal">
+            <div className="plx-imggen-header">
+              <span className="material-symbols-outlined" style={{ fontSize: "20px", color: "#a78bfa" }}>auto_awesome</span>
+              <span>Generate Image</span>
+              <button className="plx-imggen-close" onClick={() => setShowImageGenModal(false)}>
+                <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>close</span>
+              </button>
+            </div>
+
+            <form className="plx-imggen-form" onSubmit={handleImageGenSubmit}>
+              <input
+                className="plx-imggen-input"
+                type="text"
+                placeholder="Describe the image you want to generate..."
+                value={imageGenPrompt}
+                onChange={(e) => setImageGenPrompt(e.target.value)}
+                autoFocus
+                disabled={imageGenLoading}
+              />
+              <button
+                className="plx-imggen-submit-btn"
+                type="submit"
+                disabled={imageGenLoading || !imageGenPrompt.trim()}
+              >
+                {imageGenLoading ? (
+                  <><span className="material-symbols-outlined" style={{ fontSize: "16px", animation: "spin 1s linear infinite" }}>autorenew</span> Generating...</>
+                ) : (
+                  <><span className="material-symbols-outlined" style={{ fontSize: "16px" }}>bolt</span> Generate</>
+                )}
+              </button>
+            </form>
+
+            {imageGenError && (
+              <div className="plx-imggen-error">
+                <span className="material-symbols-outlined" style={{ fontSize: "15px" }}>error</span>
+                {imageGenError}
+              </div>
+            )}
+
+            {imageGenResult && (
+              <div className="plx-imggen-result">
+                <img
+                  src={imageGenResult.imageUrl}
+                  alt={imageGenResult.prompt}
+                  className="plx-imggen-preview"
+                  onError={() => setImageGenError("Image failed to load. The service may be busy, try again.")}
+                />
+                <div className="plx-imggen-actions">
+                  <button className="plx-imggen-send-btn" onClick={handleSendGeneratedImage} disabled={imageGenLoading}>
+                    <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>send</span>
+                    Send to Chat
+                  </button>
+                  <a
+                    className="plx-imggen-download-btn"
+                    href={imageGenResult.imageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>open_in_new</span>
+                    Open Full Size
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

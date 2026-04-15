@@ -59,7 +59,7 @@ const imageApi = axios.create({
   withCredentials: true,
 });
 
-export async function generateImage({ prompt, model = "flux", width = 1024, height = 1024, seed }) {
+export async function generateImage({ prompt, model = "flux", width = 768, height = 1024, seed }) {
   try {
     const response = await imageApi.post("/generate-image", { prompt, model, width, height, seed });
     return response.data;

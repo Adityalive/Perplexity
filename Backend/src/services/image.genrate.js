@@ -4,7 +4,7 @@ const router = express.Router();
 
 router.post("/generate-image", async (req, res) => {
   try {
-    const { prompt, model = "flux", width = 1024, height = 1024, seed } = req.body;
+    const { prompt, model = "flux", width = 768, height = 1024, seed } = req.body;
 
     if (!prompt || !prompt.trim()) {
       return res.status(400).json({ error: "Prompt is required" });
