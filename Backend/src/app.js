@@ -38,6 +38,12 @@ app.use((req, _res, next) => {
   next();
 });
 
+// Serve static files from the Frontend build
+const frontendBuildPath = path.join(process.cwd(), "../Frontend/dist");
+console.log("Serving Frontend from:", frontendBuildPath);
+
+app.use(express.static(frontendBuildPath));
+
 // API Routes
 app.use("/api/users", userRouter);
 app.use("/api/chats", chatRouter);
@@ -45,12 +51,8 @@ app.use("/api/music", musicRouter);
 app.use("/api/research", researchRouter);
 app.use("/api/images", imageGenerateRouter);
 
-// Serve static files from the Frontend build
-const frontendBuildPath = path.join(__dirname, "../../Frontend/dist");
-app.use(express.static(frontendBuildPath));
-
 // Catch-all to serve index.html for React Router
-app.get("*name", (req, res) => {
+app.get("*", (req, res) => {
   res.sendFile(path.join(frontendBuildPath, "index.html"));
 });
 
