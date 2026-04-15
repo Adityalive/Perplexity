@@ -8,6 +8,7 @@ import { setCurrentChatId } from "../chat.slice";
 import { generateImage } from "../services/chat.api";
 import { UserButton } from "@clerk/clerk-react";
 import "./Dashboard.css";
+import HolosLogo from "../../../components/HolosLogo";
 
 // Suggestion data for the home screen
 const SUGGESTIONS = [
@@ -380,10 +381,7 @@ export default function Dashboard() {
       <aside className="plx-sidebar">
         {/* Logo icon */}
         <div className="plx-logo-icon" title="Holos" onClick={() => { dispatch(setCurrentChatId(null)); setViewMode("home"); navigate("/dashboard"); }}>
-          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
-            <path d="M16 2L2 10V22L16 30L30 22V10L16 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
-            <path d="M16 2V30M2 10L30 22M30 10L2 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          </svg>
+          <HolosLogo size={22} className="plx-logo-svg" />
         </div>
 
         <div className="plx-sidebar-spacer" />

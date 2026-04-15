@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, SignInButton } from '@clerk/clerk-react';
 import { useEffect } from 'react';
 import './LandingPage.css';
+import HolosLogo from '../../components/HolosLogo';
 
 const FEATURES = [
   {
@@ -66,10 +67,7 @@ export default function LandingPage() {
       {/* ── TopAppBar ── */}
       <header className="lp-header">
         <div className="lp-logo">
-          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22" className="lp-logo-icon">
-            <path d="M16 2L2 10V22L16 30L30 22V10L16 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
-            <path d="M16 2V30M2 10L30 22M30 10L2 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          </svg>
+          <HolosLogo size={24} className="lp-logo-img" />
           <span className="lp-logo-text barlow-light">HOLOS</span>
         </div>
 

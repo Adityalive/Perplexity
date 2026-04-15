@@ -58,9 +58,10 @@ html.dark body, body {
   gap: 12px;
 }
 
-.lp-logo-icon {
-  color: #fff;
-  font-size: 22px;
+.lp-logo-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .lp-logo-text {
