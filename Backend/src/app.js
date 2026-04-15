@@ -7,14 +7,10 @@ import connectDB from "./config/database.js";
 import cors from "cors";
 import morgan from "morgan";
 import path from "path";
-import { fileURLToPath } from "url";
 import chatRouter from "./routes/chat.route.js";
 import musicRouter from "./routes/music.route.js";
 import researchRouter from "./routes/research.route.js";
 import imageGenerateRouter from "./routes/image.generate.route.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 connectDB();
 
