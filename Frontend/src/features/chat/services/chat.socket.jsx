@@ -7,7 +7,7 @@ export const initializeSocketConnection = () => {
         return socketInstance;
     }
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || "http://localhost:3000";
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || (import.meta.env.PROD ? window.location.origin : "http://localhost:3000");
     socketInstance = io(socketUrl, {
         withCredentials: true,
     });

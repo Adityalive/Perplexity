@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/music` : "http://localhost:3000/api/music",
+  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/music` : (import.meta.env.PROD ? "/api/music" : "http://localhost:3000/api/music"),
   withCredentials: true,
 });
 
