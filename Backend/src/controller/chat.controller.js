@@ -105,7 +105,11 @@ export async function sendImageMessage(req, res) {
     let title = null;
 
     if (!chatId) {
-      title = await generateChatTitle(content || "Image message");
+      try {
+        title = await generateChatTitle(content || "Image analysis");
+      } catch {
+        title = content?.slice(0, 40) || "Image analysis";
+      }
       chat = await chatModel.create({
         user: req.user.id,
         title,
@@ -114,16 +118,23 @@ export async function sendImageMessage(req, res) {
 
     const resolvedChatId = chatId || chat._id;
 
-    const uploadedImage = await uploadToImageKit(req.file);
-
-    // Convert local buffer to base64 Data URL for Gemini
+    // Convert local buffer to base64 Data URL (used for Gemini AND as fallback image URL)
     const base64Image = req.file.buffer.toString("base64");
     const dataUrl = `data:${req.file.mimetype};base64,${base64Image}`;
+
+    // Try ImageKit upload; fall back to base64 data URL if credentials are missing/wrong
+    let imageUrl = dataUrl;
+    try {
+      const uploadedImage = await uploadToImageKit(req.file);
+      imageUrl = uploadedImage.url;
+    } catch (uploadErr) {
+      console.error("ImageKit upload failed (using base64 fallback):", uploadErr.message);
+    }
 
     const userMessage = await messageModel.create({
       chat: resolvedChatId,
       content: content || "",
-      image: uploadedImage.url,
+      image: imageUrl,
       role: "user",
       messageType: "image",
     });
@@ -144,6 +155,7 @@ export async function sendImageMessage(req, res) {
       aiMessage,
     });
   } catch (error) {
+    console.error("sendImageMessage error:", error);
     return res.status(500).json({
       message: error.message || "Failed to send image message",
     });

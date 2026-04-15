@@ -44,8 +44,11 @@ export default function Dashboard() {
     try { return JSON.parse(localStorage.getItem("plx-pinned") || "[]"); } catch { return []; }
   });
   const [recentsHovered, setRecentsHovered] = useState(null);
+  const [isListening, setIsListening] = useState(false);
   const textareaRef = useRef(null);
   const imageInputRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const initialDraftRef = useRef("");
 
   const activeChat = currentChatId ? chats[currentChatId] : null;
   const activeMessages = activeChat?.messages ?? [];
@@ -75,7 +78,7 @@ export default function Dashboard() {
     return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "") || "chat";
   }
 
-  // Load fonts
+  // Load fonts and Web Speech API
   useEffect(() => {
     const links = [
       "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap",
@@ -88,9 +91,35 @@ export default function Dashboard() {
       return el;
     });
     initializeSocketConnection();
+
+    // Init SpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onend = () => setIsListening(false);
+      recognition.onerror = () => setIsListening(false);
+
+      recognition.onresult = (event) => {
+        let currentText = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          currentText += event.results[i][0].transcript;
+        }
+        setDraft(initialDraftRef.current + currentText);
+      };
+      recognitionRef.current = recognition;
+    }
+
     return () => {
       disconnectSocketConnection();
       links.forEach((l) => document.head.removeChild(l));
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
     };
   }, [disconnectSocketConnection, initializeSocketConnection]);
 
@@ -130,6 +159,11 @@ export default function Dashboard() {
   async function onSubmit(queryText) {
     const message = (queryText || draft).trim();
     if (isLoading) return;
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    }
 
     // Immediately switch to chat view so UI updates
     setViewMode("chat");
@@ -191,8 +225,22 @@ export default function Dashboard() {
     dispatch(setCurrentChatId(null));  // clear active chat in Redux
     setViewMode("home");               // switch UI back to home screen
     setDraft("");
+    if (isListening) recognitionRef.current?.stop();
     clearSelectedImage();
     navigate("/");                     // clear chatId from URL
+  }
+
+  function toggleListening() {
+    if (isListening) {
+      recognitionRef.current?.stop();
+    } else {
+      if (recognitionRef.current) {
+        initialDraftRef.current = draft + (draft.length > 0 && !draft.endsWith(" ") ? " " : "");
+        recognitionRef.current.start();
+      } else {
+        alert("Your browser does not support Speech Recognition.");
+      }
+    }
   }
 
   function togglePin(chatId, e) {
@@ -396,18 +444,14 @@ export default function Dashboard() {
                   <button className="plx-toolbar-btn" title="Attach image" onClick={triggerImagePicker} disabled={isLoading}>
                     <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>add</span>
                   </button>
-                  <div className="plx-source-chip">
-                    <span className="material-symbols-outlined" style={{ fontSize: "15px" }}>computer</span>
-                    <span>Computer</span>
-                    <span className="material-symbols-outlined" style={{ fontSize: "15px" }}>add</span>
-                  </div>
                 </div>
                 <div className="plx-card-toolbar-right">
-                  <button className="plx-toolbar-btn-text" title="Choose model">
-                    <span>Model</span>
-                    <span className="material-symbols-outlined" style={{ fontSize: "16px" }}>expand_more</span>
-                  </button>
-                  <button className="plx-toolbar-btn" title="Voice input">
+                  <button 
+                    className="plx-toolbar-btn" 
+                    title={isListening ? "Stop listening" : "Voice input"}
+                    onClick={toggleListening}
+                    style={isListening ? { color: '#ff5a5a', background: 'rgba(255,90,90,0.1)' } : {}}
+                  >
                     <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>mic</span>
                   </button>
                   {(draft.trim() || selectedImage) ? (
@@ -420,18 +464,17 @@ export default function Dashboard() {
                       <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>arrow_upward</span>
                     </button>
                   ) : (
-                    <button className="plx-toolbar-btn plx-toolbar-btn--voice-wave" title="Voice">
+                    <button 
+                      className="plx-toolbar-btn plx-toolbar-btn--voice-wave" 
+                      title={isListening ? "Stop listening" : "Voice"}
+                      onClick={toggleListening}
+                      style={isListening ? { borderColor: '#ff5a5a', color: '#ff5a5a' } : {}}
+                    >
                       <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>graphic_eq</span>
                     </button>
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* Try suggestion */}
-            <div className="plx-try-chip">
-              <span className="material-symbols-outlined" style={{ fontSize: "15px", opacity: 0.7 }}>computer</span>
-              <span>Try Computer</span>
             </div>
 
             {/* Suggestion pills */}
@@ -561,7 +604,12 @@ export default function Dashboard() {
                       rows={1}
                     />
                     <div className="plx-chat-input-actions">
-                      <button className="plx-toolbar-btn">
+                      <button 
+                        className="plx-toolbar-btn"
+                        title={isListening ? "Stop listening" : "Voice input"}
+                        onClick={toggleListening}
+                        style={isListening ? { color: '#ff5a5a', background: 'rgba(255,90,90,0.1)' } : {}}
+                      >
                         <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>mic</span>
                       </button>
                       {(draft.trim() || selectedImage) && (
