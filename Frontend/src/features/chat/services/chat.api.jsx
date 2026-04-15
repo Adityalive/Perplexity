@@ -53,3 +53,18 @@ export async function sendImageMessage({ chat, content,file }) {
     throw error;
   }
 }
+
+const imageApi = axios.create({
+  baseURL: "http://localhost:3000/api/images",
+  withCredentials: true,
+});
+
+export async function generateImage({ prompt, model = "flux", width = 1024, height = 1024, seed }) {
+  try {
+    const response = await imageApi.post("/generate-image", { prompt, model, width, height, seed });
+    return response.data;
+  } catch (error) {
+    console.error("Error generating image:", error);
+    throw error;
+  }
+}

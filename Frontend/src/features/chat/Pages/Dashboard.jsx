@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import ReactMarkdown from "react-markdown";
 import { MathJax } from "better-react-mathjax";
 import { useChat } from "../hook/useChat";
 import { setCurrentChatId } from "../chat.slice";
+import { generateImage } from "../services/chat.api";
 import "./Dashboard.css";
 
 // Suggestion data for the home screen
@@ -49,6 +50,15 @@ export default function Dashboard() {
   const imageInputRef = useRef(null);
   const recognitionRef = useRef(null);
   const initialDraftRef = useRef("");
+
+  // Image generation modal state
+  const [showImageGenModal, setShowImageGenModal] = useState(false);
+  const [imageGenPrompt, setImageGenPrompt] = useState("");
+  const [imageGenLoading, setImageGenLoading] = useState(false);
+  const [imageGenResult, setImageGenResult] = useState(null); // { imageUrl, prompt }
+  const [imageGenError, setImageGenError] = useState("");
+  const [showAddMenu, setShowAddMenu] = useState(false); // + button dropdown
+  const addMenuRef = useRef(null);
 
   const activeChat = currentChatId ? chats[currentChatId] : null;
   const activeMessages = activeChat?.messages ?? [];
@@ -240,6 +250,60 @@ export default function Dashboard() {
       } else {
         alert("Your browser does not support Speech Recognition.");
       }
+    }
+  }
+
+  // Close + dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target)) {
+        setShowAddMenu(false);
+      }
+    }
+    if (showAddMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showAddMenu]);
+
+  function openImageGenModal() {
+    setShowAddMenu(false);
+    setImageGenPrompt("");
+    setImageGenResult(null);
+    setImageGenError("");
+    setShowImageGenModal(true);
+  }
+
+  async function handleImageGenSubmit(e) {
+    e && e.preventDefault();
+    if (!imageGenPrompt.trim() || imageGenLoading) return;
+    setImageGenLoading(true);
+    setImageGenError("");
+    setImageGenResult(null);
+    try {
+      const data = await generateImage({ prompt: imageGenPrompt.trim() });
+      setImageGenResult(data);
+    } catch (err) {
+      setImageGenError(err?.response?.data?.error || err.message || "Failed to generate image");
+    } finally {
+      setImageGenLoading(false);
+    }
+  }
+
+  async function handleSendGeneratedImage() {
+    if (!imageGenResult?.imageUrl) return;
+    // Fetch the image as a blob then send as image message
+    setImageGenLoading(true);
+    try {
+      const resp = await fetch(imageGenResult.imageUrl);
+      const blob = await resp.blob();
+      const file = new File([blob], "generated.png", { type: "image/png" });
+      const previewUrl = URL.createObjectURL(file);
+      setSelectedImage({ file, previewUrl });
+      setDraft(imageGenPrompt);
+    } catch (err) {
+      setImageGenError("Could not load the image to send. Try right-clicking and copying it.");
+    } finally {
+      setImageGenLoading(false);
+      setShowImageGenModal(false);
     }
   }
 

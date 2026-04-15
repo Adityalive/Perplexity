@@ -8,6 +8,7 @@ import morgan from "morgan";
 import chatRouter from "./routes/chat.route.js";
 import musicRouter from "./routes/music.route.js";
 import researchRouter from "./routes/research.route.js";
+import imageGenerateRouter from "./routes/image.generate.route.js";
 connectDB();
 
 const app = express();
@@ -36,5 +37,6 @@ app.use("/api/users", userRouter);
 app.use("/api/chats", chatRouter);
 app.use("/api/music", musicRouter);
 app.use("/api/research", researchRouter);
+app.use("/api/images", imageGenerateRouter);
 
 export default app;
