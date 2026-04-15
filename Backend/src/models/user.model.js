@@ -29,6 +29,4 @@ const userSchema = new mongoose.Schema(
 // We no longer need password hashing since Clerk handles it
 const UserModel = mongoose.model("User", userSchema);
 
-const UserModel = mongoose.model("User", userSchema);
-
 export default UserModel;

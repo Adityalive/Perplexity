@@ -21,7 +21,7 @@ export async function sendMessage(req, res) {
       } catch {
         title = message.slice(0, 40); // Fallback title
       }
-      chat = await chatModel.create({ user: req.user.id, title });
+      chat = await chatModel.create({ user: req.user._id, title });
     }
 
     const resolvedChatId = chatId || chat._id;
@@ -64,7 +64,7 @@ export async function sendMessage(req, res) {
 }
 
 export async function getChats(req, res) {
-  const chats = await chatModel.find({ user: req.user.id });
+  const chats = await chatModel.find({ user: req.user._id });
 
   res.status(200).json({
     message: "Chats retrieved successfully",
@@ -77,7 +77,7 @@ export async function getMessages(req, res) {
 
   const chat = await chatModel.findOne({
     _id: chatId,
-    user: req.user.id,
+    user: req.user._id,
   });
 
   if (!chat) {
@@ -111,7 +111,7 @@ export async function sendImageMessage(req, res) {
         title = content?.slice(0, 40) || "Image analysis";
       }
       chat = await chatModel.create({
-        user: req.user.id,
+        user: req.user._id,
         title,
       });
     }

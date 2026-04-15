@@ -20,7 +20,11 @@ app.use(cors({
 app.use(morgan("dev"));
 app.use(cookieParser());
 app.use(express.json());
-app.use(clerkMiddleware());
+console.log("Clerk Publishable Key:", process.env.CLERK_PUBLISHABLE_KEY ? "Present" : "Missing");
+app.use(clerkMiddleware({
+  publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+  secretKey: process.env.CLERK_SECRET_KEY
+}));
 
 // Normalize accidental newline characters in URL paths (e.g. %0A).
 app.use((req, _res, next) => {
