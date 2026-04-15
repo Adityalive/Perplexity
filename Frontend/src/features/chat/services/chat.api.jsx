@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000/api/chats",
+  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/chats` : "http://localhost:3000/api/chats",
   withCredentials: true,
 });
 
@@ -55,7 +55,7 @@ export async function sendImageMessage({ chat, content,file }) {
 }
 
 const imageApi = axios.create({
-  baseURL: "http://localhost:3000/api/images",
+  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/images` : "http://localhost:3000/api/images",
   withCredentials: true,
 });
 

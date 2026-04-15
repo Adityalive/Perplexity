@@ -1,0 +1,17 @@
+# Goal Description
+
+The image generation feature is failing on the frontend with the error "Image failed to load." This happens because the backend proxy is currently fetching `https://pollinations.ai/p/[prompt]`, which returns an HTML page instead of the actual image data. The `<img>` tag in the frontend then fails to parse the HTML as an image, triggering the `onError` event.
+
+## Proposed Changes
+
+### Backend Service
+I will fix the target URL in the router to hit the raw image endpoint instead of the website renderer.
+
+#### [MODIFY] [image.generate.route.js](file:///c:/Users/KIIT0001/Desktop/Perplexity/Backend/src/routes/image.generate.route.js)
+Update the URL definition to use `image.pollinations.ai/prompt/`:
+```javascript
+let imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&model=${model}&nologo=true`;
+```
+
+## Verification Plan
+1. **Manual Verification**: After making the change, the user can generate an image from the UI "Generate Image" modal to confirm that actual image data is returned and renders correctly.

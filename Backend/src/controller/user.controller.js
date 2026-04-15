@@ -39,7 +39,8 @@ export const registerUser = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
     });
-    const verificationUrl = `http://localhost:3000/api/users/verify?token=${token}`;
+    const apiUrl = process.env.API_URL || "http://localhost:3000";
+    const verificationUrl = `${apiUrl}/api/users/verify?token=${token}`;
     const emailText = `Hello ${username},
 
 Thank you for registering at Perplexity. Please verify your email using the link below:
@@ -176,7 +177,7 @@ export const verifyEmail = async (req, res) => {
     const html = `
         <h1>Email Verified Successfully!</h1>
         <p>Your email has been verified. You can now log in to your account.</p>
-        <a href="http://localhost:3000/login">Go to Login</a>
+        <a href="${process.env.CLIENT_ORIGIN || "http://localhost:5173"}/login">Go to Login</a>
     `;
 
     return res.status(200).send(html);

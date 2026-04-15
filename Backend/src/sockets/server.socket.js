@@ -3,7 +3,7 @@ import {Server} from "socket.io";
 export function initsocket({httpServer}) {
     const io = new Server(httpServer,{
         cors: {
-            origin: "http://localhost:5173",
+            origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
             credentials: true
         },
     });
