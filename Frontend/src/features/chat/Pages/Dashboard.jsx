@@ -238,7 +238,7 @@ export default function Dashboard() {
     setDraft("");
     if (isListening) recognitionRef.current?.stop();
     clearSelectedImage();
-    navigate("/");                     // clear chatId from URL
+    navigate("/dashboard");                     // clear chatId from URL
   }
 
   function toggleListening() {
@@ -379,7 +379,7 @@ export default function Dashboard() {
       {/* ── NARROW ICON SIDEBAR ── */}
       <aside className="plx-sidebar">
         {/* Logo icon */}
-        <div className="plx-logo-icon" title="Holos" onClick={() => { dispatch(setCurrentChatId(null)); setViewMode("home"); navigate("/"); }}>
+        <div className="plx-logo-icon" title="Holos" onClick={() => { dispatch(setCurrentChatId(null)); setViewMode("home"); navigate("/dashboard"); }}>
           <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
             <path d="M16 2L2 10V22L16 30L30 22V10L16 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
             <path d="M16 2V30M2 10L30 22M30 10L2 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>

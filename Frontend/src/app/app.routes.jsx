@@ -5,10 +5,15 @@ import Protected from '../features/auth/components/Protected';
 import Dashboard from '../features/chat/Pages/Dashboard';
 import MusicPage from '../features/music/Pages/MusicPage';
 import ResearchPage from '../features/research/Pages/ResearchPage.jsx';
+import LandingPage from '../features/landing/LandingPage.jsx';
 
 export const router = createBrowserRouter([
   {
     path: '/',
+    element: <LandingPage />,
+  },
+  {
+    path: '/dashboard',
     element: <Protected><Dashboard /></Protected>,
   },
   {

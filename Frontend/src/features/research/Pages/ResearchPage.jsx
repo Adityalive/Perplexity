@@ -71,7 +71,7 @@ export default function ResearchPage() {
     <div className="rp-root">
       {/* Nav */}
       <nav className="rp-nav">
-        <button className="rp-nav-back" onClick={() => navigate("/")}>
+        <button className="rp-nav-back" onClick={() => navigate("/dashboard")}>
           ← Back
         </button>
         <div className="rp-nav-title">
