@@ -1,65 +1,51 @@
-import Together from "together-ai";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { HumanMessage } from "@langchain/core/messages";
+import OpenAI from "openai";
 
-let together = null;
-let geminiModel = null;
+let groq = null;
 
 export async function processImage(image, userPrompt = "") {
-    try {
-        const finalPrompt = userPrompt.trim()
-            ? `Please solve or answer the following based on the provided image: ${userPrompt}`
-            : "Please analyze this image and return a detailed description of what it contains.";
+  const finalPrompt = userPrompt.trim()
+    ? `Please solve or answer the following based on the provided image: ${userPrompt}`
+    : "Please analyze this image and return a detailed description of what it contains.";
 
-        const imageUrl = typeof image === 'string' ? image : image.url;
+  const imageUrl = typeof image === "string" ? image : image.url;
+  const groqKey = process.env.GROQ_API_KEY?.trim();
 
-        // Prefer Together AI if key is available
-        const togetherKey = process.env.TOGETHER_API_KEY;
-        if (togetherKey && togetherKey !== "your_together_api_key_here") {
-            if (!together) {
-                together = new Together({ apiKey: togetherKey });
-            }
+  if (!groqKey) {
+    throw new Error("GROQ_API_KEY is not configured in .env file.");
+  }
 
-            const response = await together.chat.completions.create({
-                model: "meta-llama/Llama-3.2-11B-Vision-Instruct",
-                messages: [
-                    {
-                        role: "user",
-                        content: [
-                            { type: "text", text: finalPrompt },
-                            { type: "image_url", image_url: { url: imageUrl } }
-                        ]
-                    }
-                ]
-            });
+  if (!imageUrl) {
+    throw new Error("No valid image URL provided.");
+  }
 
-            return response.choices[0].message.content;
-        }
+  if (!groq) {
+    groq = new OpenAI({
+      apiKey: groqKey,
+      baseURL: "https://api.groq.com/openai/v1",
+    });
+  }
 
-        // Fallback: Use Google Gemini
-        console.warn("TOGETHER_API_KEY not set, falling back to Google Gemini for image processing.");
-        if (!geminiModel) {
-            if (!process.env.GOOGLE_API_KEY) {
-                throw new Error("Neither TOGETHER_API_KEY nor GOOGLE_API_KEY is configured.");
-            }
-            geminiModel = new ChatGoogleGenerativeAI({
-                model: "gemini-2.0-flash",
-                apiKey: process.env.GOOGLE_API_KEY,
-            });
-        }
+  try {
+    const response = await groq.chat.completions.create({
+      model: "meta-llama/llama-4-scout-17b-16e-instruct",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: finalPrompt },
+            {
+              type: "image_url",
+              image_url: { url: imageUrl },
+            },
+          ],
+        },
+      ],
+    });
 
-        const message = new HumanMessage({
-            content: [
-                { type: "text", text: finalPrompt },
-                { type: "image_url", image_url: imageUrl },
-            ],
-        });
-
-        const res = await geminiModel.invoke([message]);
-        return res.content;
-
-    } catch (error) {
-        console.error("Error processing image:", error);
-        throw error;
-    }
+    console.log("Groq AI response received successfully");
+    return response.choices?.[0]?.message?.content || "No response returned from Groq.";
+  } catch (error) {
+    console.error("Groq image processing failed:", error?.message || error);
+    throw error;
+  }
 }
