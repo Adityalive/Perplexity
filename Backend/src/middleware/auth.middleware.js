@@ -20,11 +20,25 @@ export const authverify = async (req, res, next) => {
     // Upsert: Create user on first login after verifying token
     if (!user) {
       const clerkUser = await clerkClient.users.getUser(clerkId);
-      user = await UserModel.create({
-        clerkId: clerkId,
-        email: clerkUser.emailAddresses[0]?.emailAddress || "unknown@clerk.dev",
-        username: clerkUser.username || clerkUser.firstName || "User",
-      });
+      const email = clerkUser.emailAddresses[0]?.emailAddress || "unknown@clerk.dev";
+      const username = clerkUser.username || clerkUser.firstName || "User";
+
+      // Check if user exists from the old auth system without a clerkId
+      let existingUser = await UserModel.findOne({ email });
+
+      if (existingUser) {
+        // Link the new Clerk account to the existing MongoDB user
+        existingUser.clerkId = clerkId;
+        await existingUser.save();
+        user = existingUser;
+      } else {
+        // Entirely new user
+        user = await UserModel.create({
+          clerkId: clerkId,
+          email: email,
+          username: username,
+        });
+      }
     }
     
     req.user = user; // keep backwards compatibility for req.user
