@@ -68,7 +68,7 @@ export default function RegisterPage() {
     <main className="register-page">
       <section className="register-page__hero">
         <div className="register-page__hero-card">
-          <span className="register-page__eyebrow">Perplexity Workspace</span>
+          <span className="register-page__eyebrow">Holos Workspace</span>
           <h1>Start your account with a clean, calm onboarding flow.</h1>
           <p>
             Create your profile, keep your conversations in one place, and step

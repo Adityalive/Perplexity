@@ -61,7 +61,7 @@ export default function LoginPage() {
     <main className="login-page">
       <section className="login-page__hero">
         <div className="login-page__hero-card">
-          <span className="login-page__eyebrow">Perplexity Workspace</span>
+          <span className="login-page__eyebrow">Holos Workspace</span>
           <h1>Log in and pick up right where you left off.</h1>
           <p>
             Access saved prompts, recent conversations, and your full workspace
