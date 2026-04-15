@@ -48,7 +48,7 @@ app.use("/api/research", researchRouter);
 app.use("/api/images", imageGenerateRouter);
 
 // Catch-all to serve index.html for React Router
-app.get("(.*)", (req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(frontendBuildPath, "index.html"));
 });
 
